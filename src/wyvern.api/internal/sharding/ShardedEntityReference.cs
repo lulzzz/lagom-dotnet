@@ -47,7 +47,15 @@ namespace wyvern.api.@internal.sharding
             if (task.Exception != null)
                 throw task.Exception;
 
-            return (TR) task.Result;
+            try
+            {
+                return (TR)task.Result;
+            }
+            catch (Exception ex)
+            {
+                ActorSystem.Log.Error(ex, "Exception on Ask: Invalid return type");
+                throw;
+            }
         }
     }
 }
