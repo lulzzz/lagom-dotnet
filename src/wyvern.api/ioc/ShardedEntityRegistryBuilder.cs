@@ -59,7 +59,10 @@ namespace wyvern.api.ioc
 
         public IShardedEntityRegistry Build()
         {
-            var configakka = ConfigurationFactory.ParseString(File.ReadAllText($"akka.conf"));
+            var akka_type = Environment.GetEnvironmentVariable("AKKA_TYPE");
+            if (String.IsNullOrEmpty(akka_type))
+                akka_type = "seed";
+            var configakka = ConfigurationFactory.ParseString(File.ReadAllText($"akka.{akka_type}.conf"));
             var actorSystem = ActorSystem.Create("ClusterSystem", configakka);
 
             // var commandLineVisualizer = new CommandLineVisualizer();

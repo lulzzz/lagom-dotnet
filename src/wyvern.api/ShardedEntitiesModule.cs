@@ -15,7 +15,6 @@ namespace wyvern.api
             {
                 var builder = new ShardedEntityRegistryBuilder();
                 builderDelegate.Invoke(builder);
-                // TODO: seed/node configuration
                 // TODO: find a way to prepare akka before this.
                 return builder.Build();
             });
