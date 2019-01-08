@@ -1,0 +1,45 @@
+version: '3.3'
+services:
+  db:
+    build:
+      context: ./docker/db
+      dockerfile: ./Dockerfile
+    environment:
+      SA_PASSWORD: 000000000!
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: sqlcmd -S localhost -U SA -P '000000000!'   -Q 'select 1'
+
+  seed:
+    build:
+      context: .
+      dockerfile: ./docker/seed/Dockerfile
+    ports:
+      - "5000:5000"
+      - "7000:7000"
+    environment:
+      ASPNETCORE_URLS: "http://*:5000"
+      AKKA_TYPE: "seed"
+    healthcheck:
+      test: curl --fail http://seed:5000 || exit 1
+    depends_on:
+      - db
+
+  node:
+    build:
+      context: .
+      dockerfile: ./docker/seed/Dockerfile
+    ports:
+      - "5001:5000"
+      - "7001:7000"
+    environment:
+      ASPNETCORE_URLS: "http://*:5000"
+      AKKA_TYPE: "node"
+    healthcheck:
+      test: curl --fail http://node:5001 || exit 1
+    depends_on:
+      - db
+      - seed
+
