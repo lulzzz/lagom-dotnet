@@ -1,31 +1,75 @@
-# wyvern - tutorial
+> Wyvern
+> A .NET Core port of Lagom Framework
 
+# Introduction
 
-## Introduction
+This is a walkthrough of how to start using wyvern. This folder contains the
+end result of the tutorial - follow the instructions below from scratch to
+see how it's all put together.
 
-This is a walkthrough of how to start using wyvern.
+# Steps
 
-## Steps
+## Create a new project
 
-Create the project and add basic references:
+Create a new dotnet core web project and add the basic wyvern references:
 
-1. mkdir api.tutorial
+1. mkdir my-project
 2. dotnet new web
-3. dotnet add reference ../wyvern.api/
+3. Add references to the .csproj file:
+~~~~
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="1.3.10" />
+    <PackageReference Include="Akka.Streams" Version="1.3.10" />
+  </ItemGroup>
 
-## Startup
+  <ItemGroup>
+    <ProjectReference Include="..\relative-path-to\wyvern.api.csproj" />
+    <ProjectReference Include="..\relative-path-to\wyvern.entity.csproj" />
+  </ItemGroup>
+~~~~
+
+## Scaffold a basic entity
+
+~~~~
+create abstract command
+~~~~
+
+~~~~
+create abstract event
+~~~~
+
+~~~~
+create abstract state
+~~~~
+
+## Create the sharded entity
+
+~~~~
+create typed entity
+~~~~
+
+## Add Service Definition
+
+## Add Service Implementation
+
+## Register Command Handlers
+
+## Register Event Handlers
+
+## Register IoC Components
 
 Make the following edits to Startup.cs:
-
-TODO: Create template for web insetad of using default
 
 1. include a reference to wyvern.api:
 
 `using wyvern.api;`
 
+# Configuration
 
-## Scaffold a basic entity:
+# Running
 
-1. Install entity templates: `dotnet new -i ../wyvern.templates/Entity.CSharp`
-# TODO: Change naming convention for find rep;lace.
-2. dotnet new wyvern.entity --name BankAccount
+## Swagger Generation
+
+## Cluster Scaling
+
+## Check the Database
