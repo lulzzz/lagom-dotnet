@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Akka;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.Swagger;
 using wyvern.api.@internal.surfaces;
@@ -31,10 +32,6 @@ namespace wyvern.api.ioc
                 foreach (var call in service.Descriptor.Calls)
                 {
                     var restCall = call.CallId as RestCallId;
-                    var mref = call.MethodRef;
-                    var mrefParams = mref.GetParameters().Select(x => x.Name);
-                    var reqType = mref.ReturnType.GenericTypeArguments[0];
-                    var reqSchema = schemaRegistry.GetOrRegister(reqType);
 
                     var parameters = Regex.Matches(restCall.PathPattern, "\\{([^\\}]*)\\}")
                             .Select(match => match.Value.Split(":"))
@@ -43,8 +40,17 @@ namespace wyvern.api.ioc
                                 Name = x[0].Substring(1, x[0].Length - 2),
                                 In = "path"
                                 // TODO: Type from split, min / max, required
-                            })
-                            .Concat(
+                            } as IParameter)
+                            .ToList();
+
+                    var mref = call.MethodRef;
+                    var mrefParams = mref.GetParameters().Select(x => x.Name);
+                    var reqType = mref.ReturnType.GenericTypeArguments[0];
+
+                    if (reqType != typeof(NotUsed))
+                    {
+                        var reqSchema = schemaRegistry.GetOrRegister(reqType);
+                        parameters = parameters.Concat(
                                 new IParameter[] {
                                     new BodyParameter
                                     {
@@ -54,34 +60,32 @@ namespace wyvern.api.ioc
                                         Description = reqType.Name
                                     }
                                 }
-                            )
-                            .ToList();
+                            ).ToList();
+                    }
+
+                    var resType = mref.ReturnType.GenericTypeArguments[1];
+                    var operation = new Operation()
+                    {
+                        OperationId = call.MethodRef.Name,
+                        Consumes = new List<string>() {
+                            "application/json"
+                        },
+                        Produces = new List<string>() {
+                            "application/json"
+                        },
+                        Responses = new Dictionary<string, Response>()
+                        {
+                            { "200", new Response { Schema = schemaRegistry.GetOrRegister(resType) } }
+                        },
+                        Parameters = parameters
+                    };
 
                     swaggerDoc.Paths.Add(
-                        $"{restCall.PathPattern}",
+                        restCall.PathPattern,
                         new PathItem
                         {
-                            Post = restCall.Method != Method.POST ? null :
-                                new Operation()
-                                {
-                                    OperationId = call.MethodRef.Name,
-                                    Consumes = new List<string>() {
-                                        "application/json"
-                                    },
-                                    Produces = new List<string>() {
-                                        "application/json"
-                                    },
-                                    Responses = new Dictionary<string, Response>()
-                                    {
-                                        { "200", new Response { Schema = schemaRegistry.GetOrRegister(typeof(string))}}
-                                    },
-                                    Parameters = parameters
-                                },
-                            Get = restCall.Method != Method.GET ? null :
-                                new Operation()
-                                {
-                                    OperationId = call.MethodRef.Name
-                                }
+                            Post = restCall.Method == Method.POST ? operation : null,
+                            Get = restCall.Method == Method.GET ? operation : null
                         }
                     );
                 }
