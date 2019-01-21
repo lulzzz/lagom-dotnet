@@ -41,23 +41,26 @@ namespace wyvern.api.ioc
             var services = app.ApplicationServices;
             var reactiveServices = services.GetService<IReactiveServices>();
 
+            var router = new RouteBuilder(app);
+            
             foreach (var (serviceType, _) in reactiveServices)
             {
                 var instance = services.GetService(serviceType);
                 var service = (Service)instance;
-                var router = new RouteBuilder(app);
 
                 foreach (var call in service.Descriptor.Calls)
                     RegisterCall(router, service, serviceType, call);
 
                 foreach (var topic in service.Descriptor.Topics)
-                    RegisterTopic(topic);
-
-                // TODO: original aspect replaced all calls / topics on the descriptor
-
-                var routes = router.Build();
-                app.UseRouter(routes);
+                    RegisterTopic(topic);    
             }
+            
+            // TODO: original code replaced all calls / topics on the descriptor
+
+            AddVisualizer(router);
+
+            var routes = router.Build();            
+            app.UseRouter(routes);
 
             app.UseSwagger();
             app.UseSwaggerUI(x =>
@@ -68,6 +71,30 @@ namespace wyvern.api.ioc
             });
 
             return app;
+        }
+
+        private static void AddVisualizer(IRouteBuilder router)
+        {
+            router.MapGet("/api/visualizer/list", async (req, res, ctx) =>
+            {
+                req.Query.TryGetValue("path", out var path);
+                var obj = await WebApiVisualizer.Root.List(path);
+                var jsonString = JsonConvert.SerializeObject(obj);
+                byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                res.ContentType = "application/json";
+                await res.Body.WriteAsync(content, 0, content.Length);
+            });
+
+            router.MapGet("/api/visualizer/send", async (req, res, ctx) =>
+            {
+                req.Query.TryGetValue("path", out var path);
+                req.Query.TryGetValue("messageType", out var messageType);
+                var obj = await WebApiVisualizer.Root.Send(path, messageType);
+                var jsonString = JsonConvert.SerializeObject(obj);
+                byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                res.ContentType = "application/json";
+                await res.Body.WriteAsync(content, 0, content.Length);
+            });
         }
 
         private static void RegisterTopic(object t)

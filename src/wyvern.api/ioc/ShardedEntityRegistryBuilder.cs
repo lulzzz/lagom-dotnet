@@ -15,13 +15,15 @@ namespace wyvern.api.ioc
 {
     public sealed class ShardedEntityRegistryBuilder : IShardedEntityRegistryBuilder
     {
-        private List<Action<IShardedEntityRegistry>> RegistryDelegates { get; } =
-            new List<Action<IShardedEntityRegistry>>();
+        private ActorSystem ActorSystem { get; }
+
+        private List<Action<IShardedEntityRegistry>> RegistryDelegates { get; } = new List<Action<IShardedEntityRegistry>>();
         private List<Action<ReadSide>> ReadSideDelegates { get; } = new List<Action<ReadSide>>();
         private List<Action<ActorSystem>> ExtensionDelegates { get; } = new List<Action<ActorSystem>>();
 
-        public ShardedEntityRegistryBuilder()
+        public ShardedEntityRegistryBuilder(ActorSystem actorSystem)
         {
+            ActorSystem = actorSystem;
             ExtensionDelegates.Add(x => x.WithExtension<ClusterDistribution, ClusterDistributionExtensionProvider>());
         }
 
@@ -59,27 +61,16 @@ namespace wyvern.api.ioc
 
         public IShardedEntityRegistry Build()
         {
-            var akka_type = Environment.GetEnvironmentVariable("AKKA_TYPE");
-            if (String.IsNullOrEmpty(akka_type))
-                akka_type = "seed";
-            var configakka = ConfigurationFactory.ParseString(File.ReadAllText($"akka.{akka_type}.conf"));
-            var actorSystem = ActorSystem.Create("ClusterSystem", configakka);
-
-            // var commandLineVisualizer = new CommandLineVisualizer();
-            // var webVisualizer = new WebApiVisualizer();
-            // ActorVisualizeExtension.InstallVisualizer(actorSystem, commandLineVisualizer);
-            // ActorVisualizeExtension.InstallVisualizer(actorSystem, webVisualizer);
-
             foreach (var extensionDelegate in ExtensionDelegates)
-                extensionDelegate(actorSystem);
+                extensionDelegate(ActorSystem);
 
-            var registry = new ShardedEntityRegistry(actorSystem);
+            var registry = new ShardedEntityRegistry(ActorSystem);
             foreach (var registryDelegate in RegistryDelegates)
                 registryDelegate.Invoke(registry);
 
-            var readsideConfig = new ReadSideConfig(configakka);
+            var readsideConfig = new ReadSideConfig(ActorSystem.Settings.Config);
             var readside = new ReadSideImpl(
-                actorSystem,
+                ActorSystem,
                 readsideConfig,
                 registry
             );

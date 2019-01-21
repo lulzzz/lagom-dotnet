@@ -1,4 +1,5 @@
 using System;
+using Akka.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using wyvern.api.@internal.surfaces;
@@ -8,14 +9,19 @@ namespace wyvern.api
 {
     public static class ShardedEntitiesModule
     {
+        static bool WasCalled { get; set; }
+
         public static IServiceCollection AddShardedEntities(this IServiceCollection services,
             Action<IShardedEntityRegistryBuilder> builderDelegate)
         {
-            services.AddSingleton<IShardedEntityRegistry>(x =>
+            if (WasCalled) throw new Exception("ShardedEntitiesModule already called");
+            WasCalled = true;
+
+            services.AddSingleton(x =>
             {
-                var builder = new ShardedEntityRegistryBuilder();
+                var actorSystem = x.GetService<ActorSystem>();
+                var builder = new ShardedEntityRegistryBuilder(actorSystem);
                 builderDelegate.Invoke(builder);
-                // TODO: find a way to prepare akka before this.
                 return builder.Build();
             });
             return services;

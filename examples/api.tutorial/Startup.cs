@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Akka.Visualize;
 using wyvern.api;
 using wyvern.api.ioc;
 using wyvern.entity;
@@ -25,6 +26,11 @@ namespace api.tutorial
             services.AddReactiveServices(x =>
             {
                 x.AddReactiveService<BankAccountService, BankAccountServiceImpl>();
+                x.AddActorSystemDelegate(system =>
+                {
+                    var wv = new WebApiVisualizer();    
+                    ActorVisualizeExtension.InstallVisualizer(system, wv);
+                });
             });
             services.AddShardedEntities(x =>
             {
