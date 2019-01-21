@@ -25,6 +25,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\wyvern.api\wyvern.api.csproj" />
     <ProjectReference Include="..\..\src\wyvern.entity\wyvern.entity.csproj" />
+    <ProjectReference Include="..\..\src\wyvern.utils\wyvern.utils.csproj" />
+    <ProjectReference Include="..\..\src\Akka.Visualize\Akka.Visualize.csproj" />
+  </ItemGroup>
   </ItemGroup>
 
 </Project>
