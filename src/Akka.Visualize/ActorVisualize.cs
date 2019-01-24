@@ -29,12 +29,12 @@ namespace Akka.Visualize
             return _registry.AddMonitor(client);
         }
 
-        public Task<QueryResult> List(string path)
+        public async Task<QueryResult> List(string path)
         {
             if (String.IsNullOrEmpty(path))
             {
 
-                return Task.FromResult(new QueryResult("", new List<NodeInfo>()
+                return await Task.FromResult(new QueryResult("", new List<NodeInfo>()
                 {
                     new NodeInfo()
                     {
@@ -49,7 +49,7 @@ namespace Akka.Visualize
 
             if (!path.EndsWith("*"))
                 path = path + "*";
-            return _queryActor.Ask<QueryResult>(new Messages.Query(path));
+            return await _queryActor.Ask<QueryResult>(new Messages.Query(path));
         }
 
         public Task<NodeInfo> Send(string path, string messageType)
