@@ -21,9 +21,9 @@ namespace wyvern.api
             _actorVisualizer = actorVisualizer;
         }
 
-        public Task<QueryResult> List(string path)
+        public async Task<QueryResult> List(string path)
         {
-            return _actorVisualizer.List(path);
+            return await _actorVisualizer.List(path);
         }
 
         public Task<NodeInfo> Send(string path, string messageType)

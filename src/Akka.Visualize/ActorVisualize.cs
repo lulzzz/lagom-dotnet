@@ -29,27 +29,29 @@ namespace Akka.Visualize
             return _registry.AddMonitor(client);
         }
 
-        public Task<QueryResult> List(string path)
+        public async Task<QueryResult> List(string path)
         {
             if (String.IsNullOrEmpty(path))
             {
 
-                return Task.FromResult(new QueryResult("", new List<NodeInfo>()
+                return await Task.FromResult(new QueryResult("", new List<NodeInfo>()
                 {
                     new NodeInfo()
-                    {
-                        Path = _queryActor.Path.Root.ToString(),
+        {
+            Path = _queryActor.Path.Root.ToString(),
                         Name = _queryActor.Path.Root.Address.System,
                         IsLocal = true,
                         IsTerminated = false,
                         Type = "akka"
                     }
-                }));
+    }));
             }
 
             if (!path.EndsWith("*"))
                 path = path + "*";
-            return _queryActor.Ask<QueryResult>(new Messages.Query(path));
+
+            return await _queryActor.Ask<QueryResult>(new Messages.Query(path));
+
         }
 
         public Task<NodeInfo> Send(string path, string messageType)

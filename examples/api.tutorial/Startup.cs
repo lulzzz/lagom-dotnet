@@ -23,13 +23,13 @@ namespace api.tutorial
         public void ConfigureServices(IServiceCollection services)
         {
             // TODO: Automatic registration of these types would be helpful
+            services.AddCors();
             services.AddReactiveServices(x =>
             {
                 x.AddReactiveService<BankAccountService, BankAccountServiceImpl>();
                 x.AddActorSystemDelegate(system =>
                 {
-                    var wv = new WebApiVisualizer();
-                    ActorVisualizeExtension.InstallVisualizer(system, wv);
+                    ActorVisualizeExtension.InstallVisualizer(system, new WebApiVisualizer());
                 });
             });
             services.AddShardedEntities(x =>
@@ -40,6 +40,7 @@ namespace api.tutorial
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
             app.UseMiddleware<HttpStatusCodeExceptionMiddleware>();
             app.UseReactiveServices();
         }

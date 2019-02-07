@@ -24,7 +24,7 @@ namespace wyvern.api.@internal.sharding
         private ActorSystem ActorSystem { get; }
         private TimeSpan AskTimeout { get; }
 
-        public async Task<TR> Ask<TR>(IReplyType<TR> command)
+        public async Task<object> Ask<TR>(IReplyType<TR> command)
         {
             var task = Region.Ask(
                 new CommandEnvelope(
@@ -49,7 +49,7 @@ namespace wyvern.api.@internal.sharding
 
             try
             {
-                return (TR)task.Result;
+                return task.Result;
             }
             catch (Exception ex)
             {
