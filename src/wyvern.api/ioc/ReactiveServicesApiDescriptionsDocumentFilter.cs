@@ -63,7 +63,9 @@ namespace wyvern.api.ioc
                             ).ToList();
                     }
 
-                    var resType = mref.ReturnType.GenericTypeArguments[1];
+                    var resType = mref.ReturnType
+                        .GenericTypeArguments[1]  // Task<T>
+                        .GenericTypeArguments[0]; // T
                     var operation = new Operation()
                     {
                         OperationId = call.MethodRef.Name,
