@@ -92,6 +92,29 @@ namespace wyvern.api
         }
 
         /// <summary>
+        /// Creates a path call type from Request to Response type with two parameters
+        /// </summary>
+        /// <param name="pathPattern"></param>
+        /// <param name="methodRef"></param>
+        /// <typeparam name="TA"></typeparam>
+        /// <typeparam name="TB"></typeparam>
+        /// <typeparam name="TC"></typeparam>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <returns></returns>
+        protected static ICall<TRequest, TResponse> PathCall<TA, TB, TC, TRequest, TResponse>(
+            string pathPattern,
+            Func<TA, TB, TC, Func<TRequest, TResponse>> methodRef)
+            where TRequest : class
+            where TResponse : class
+        {
+            return new Call<TRequest, TResponse>(
+                new PathCallId(pathPattern),
+                methodRef.Method
+            );
+        }
+
+        /// <summary>
         /// Creates a REST call type from Request to Response type
         /// </summary>
         /// <param name="method"></param>
@@ -153,6 +176,33 @@ namespace wyvern.api
             Method method,
             string pathPattern,
             Func<TA, TB, Func<TRequest, TResponse>> methodRef)
+            where TRequest : class
+            where TResponse : class
+        {
+            if (pathPattern == null) throw new ArgumentNullException(nameof(pathPattern));
+            return new Call<TRequest, TResponse>(
+                new RestCallId(method, pathPattern),
+                methodRef.Method
+            );
+        }
+
+        /// <summary>
+        /// Creates a REST call type from Request to Response type with a double
+        /// parameter
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="pathPattern"></param>
+        /// <param name="methodRef"></param>
+        /// <typeparam name="TA"></typeparam>
+        /// <typeparam name="TB"></typeparam>
+        /// <typeparam name="TC"></typeparam>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <returns></returns>
+        protected static ICall<TRequest, TResponse> RestCall<TA, TB, TC, TRequest, TResponse>(
+            Method method,
+            string pathPattern,
+            Func<TA, TB, TC, Func<TRequest, TResponse>> methodRef)
             where TRequest : class
             where TResponse : class
         {

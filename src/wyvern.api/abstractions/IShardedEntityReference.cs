@@ -4,6 +4,6 @@ namespace wyvern.api
 {
     public interface IShardedEntityReference
     {
-        Task<TR> Ask<TR>(IReplyType<TR> command);
+        Task<object> Ask<TR>(IReplyType<TR> command);
     }
 }
