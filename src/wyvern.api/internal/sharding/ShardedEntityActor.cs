@@ -185,9 +185,6 @@ namespace wyvern.api.@internal.sharding
                                     var mi = ap.GetType().GetMethod("Invoke");
                                     mi.Invoke(ap, new object[] { e });
                                 }
-
-                                // TODO: impose snapshot based on timelimit as well.
-
                                 if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0)
                                     SaveSnapshot(Entity.BehaviorProperty.State);
                             }

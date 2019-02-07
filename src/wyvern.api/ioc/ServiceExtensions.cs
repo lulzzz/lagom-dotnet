@@ -42,7 +42,7 @@ namespace wyvern.api.ioc
             var reactiveServices = services.GetService<IReactiveServices>();
 
             var router = new RouteBuilder(app);
-            
+
             foreach (var (serviceType, _) in reactiveServices)
             {
                 var instance = services.GetService(serviceType);
@@ -52,14 +52,14 @@ namespace wyvern.api.ioc
                     RegisterCall(router, service, serviceType, call);
 
                 foreach (var topic in service.Descriptor.Topics)
-                    RegisterTopic(topic);    
+                    RegisterTopic(topic);
             }
-            
+
             // TODO: original code replaced all calls / topics on the descriptor
 
             AddVisualizer(router);
 
-            var routes = router.Build();            
+            var routes = router.Build();
             app.UseRouter(routes);
 
             app.UseSwagger();
@@ -176,19 +176,28 @@ namespace wyvern.api.ioc
                     try
                     {
                         await task;
+                        if (task.Result is Exception)
+                            throw task.Result as Exception;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         res.StatusCode = 500;
+                        var result = task.Result as Exception;
+                        var jsonString = JsonConvert.SerializeObject(result.Message);
+                        byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                        res.ContentType = "application/json";
+                        await res.Body.WriteAsync(content, 0, content.Length);
                         return;
                     }
 
-                    var result = task.Result;
+                    {
+                        var result = task.Result;
 
-                    var jsonString = JsonConvert.SerializeObject(result);
-                    byte[] content = Encoding.UTF8.GetBytes(jsonString);
-                    res.ContentType = "application/json";
-                    await res.Body.WriteAsync(content, 0, content.Length);
+                        var jsonString = JsonConvert.SerializeObject(result);
+                        byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                        res.ContentType = "application/json";
+                        await res.Body.WriteAsync(content, 0, content.Length);
+                    }
                 }
             );
         }
