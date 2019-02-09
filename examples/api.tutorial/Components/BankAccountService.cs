@@ -2,19 +2,18 @@ using wyvern.api;
 using System;
 using Akka;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using static BankAccountServiceRequest;
 using static BankAccountCommand;
 
 public abstract class BankAccountService : Service
 {
-    protected abstract Func<Func<CreateAccountRequest, Task<Done>>> NewAccount { get; }
+    public abstract Func<Func<CreateAccountRequest, Task<Object>>> NewAccount { get; }
 
-    protected abstract Func<string, Func<NotUsed, Task<AccountBalance>>> Balance { get; }
+    public abstract Func<string, Func<NotUsed, Task<Object>>> Balance { get; }
 
-    protected abstract Func<string, Func<DepositRequest, Task<Done>>> Deposit { get; }
-    protected abstract Func<string, Func<WithdrawRequest, Task<Done>>> Withdraw { get; }
-    protected abstract Func<string, Func<TransferRequest, Task<Done>>> Transfer { get; }
+    public abstract Func<string, Func<DepositRequest, Task<Object>>> Deposit { get; }
+    public abstract Func<string, Func<WithdrawRequest, Task<Object>>> Withdraw { get; }
+    public abstract Func<string, Func<TransferRequest, Task<Object>>> Transfer { get; }
 
     public override IDescriptor Descriptor => Named("BankAccount")
         .WithCalls(

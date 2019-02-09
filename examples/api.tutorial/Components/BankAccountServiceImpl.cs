@@ -13,35 +13,35 @@ public sealed class BankAccountServiceImpl : BankAccountService
         (IShardedEntityRegistry registry)
         => Registry = registry;
 
-    protected override Func<string, Func<NotUsed, Task<AccountBalance>>> Balance
+    public override Func<string, Func<NotUsed, Task<Object>>> Balance
         => accountId
         => async _
         => await Registry
             .RefFor<BankAccountEntity>(accountId)
             .Ask(new AccountBalanceCommand(accountId));
 
-    protected override Func<Func<CreateAccountRequest, Task<Done>>> NewAccount
+    public override Func<Func<CreateAccountRequest, Task<Object>>> NewAccount
         => ()
         => async req
         => await Registry
                 .RefFor<BankAccountEntity>(req.AccountId)
                 .Ask(new CreateAccountCommand(req.AccountId, req.Name, req.InitialDeposit));
 
-    protected override Func<string, Func<DepositRequest, Task<Done>>> Deposit
+    public override Func<string, Func<DepositRequest, Task<Object>>> Deposit
         => accountId
         => async req
         => await Registry
             .RefFor<BankAccountEntity>(accountId)
             .Ask(new DepositCommand(accountId, req.From, req.Amount));
 
-    protected override Func<string, Func<WithdrawRequest, Task<Done>>> Withdraw
+    public override Func<string, Func<WithdrawRequest, Task<Object>>> Withdraw
         => accountId
         => async req
         => await Registry
             .RefFor<BankAccountEntity>(accountId)
             .Ask(new WithdrawCommand(accountId, req.To, req.Amount));
 
-    protected override Func<string, Func<TransferRequest, Task<Done>>> Transfer
+    public override Func<string, Func<TransferRequest, Task<Object>>> Transfer
         => accountId
         => async req
         => await Registry
