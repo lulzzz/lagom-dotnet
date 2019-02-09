@@ -251,9 +251,8 @@ namespace wyvern.api.@internal.sharding
 
             ReverseRegister.TryAdd(entityClassType, entityTypeName);
 
-            ActorSystem.Log.Warning("Passivate not set");
-
-            var PassivateAfterIdleTimeout = TimeSpan.FromSeconds(100);
+            var PassivateAfterIdleTimeout = ActorSystem.Settings.Config.GetConfig("wyvern.persistence")
+                .GetTimeSpan("passivate-after-idle-timeout", TimeSpan.FromSeconds(100));
 
             // TODO: Plugin Ids
             const string snapshotPluginId = "";

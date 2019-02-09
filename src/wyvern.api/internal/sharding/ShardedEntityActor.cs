@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Akka.Actor;
+using Akka.Cluster.Sharding;
+using Akka.Dispatch.SysMsg;
 using Akka.Persistence;
 using Akka.Persistence.Journal;
 using Akka.Streams.Util;
@@ -68,12 +70,17 @@ namespace wyvern.api.@internal.sharding
             if (EntityId.IndexOf(Separator) > -1)
                 throw new InvalidOperationException("Illegal use of separator character in entity name");
 
-            Entity = new T();
-            Entity.EntityId = EntityId;
+            Entity = new T
+            {
+                EntityId = EntityId
+            };
             SnapshotAfter = snapshotAfter;
             PassivateAfterIdleTimeout = passivateAfterIdleTimeout;
             SnapshotPluginId = snapshotPluginId;
             JournalPluginId = journalPluginId;
+
+            Context.SetReceiveTimeout(passivateAfterIdleTimeout);
+
         }
 
         /**
@@ -236,13 +243,15 @@ namespace wyvern.api.@internal.sharding
             {
                 return true;
             }
-            else if (commandType.IsSubclassOf(typeof(Stop)))
+            else if (message is Stop || message is PoisonPill)
             {
                 Context.Stop(Self);
             }
-            else if (commandType.IsSubclassOf(typeof(ReceiveTimeout)))
+            else if (message is ReceiveTimeout)
             {
-                // TODO: Context.Parent.Tell(ShardRegion.Passivate(Stop));
+                ShardRegion.Context.Parent.Tell(
+                    new Passivate(new Stop())
+                );
             }
             else
             {
@@ -351,10 +360,6 @@ namespace wyvern.api.@internal.sharding
                 default:
                     return e;
             }
-        }
-
-        public struct Stop
-        {
         }
     }
 }
