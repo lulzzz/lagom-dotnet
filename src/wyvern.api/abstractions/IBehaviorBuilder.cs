@@ -27,6 +27,10 @@ namespace wyvern.api
             where TE2 : TE
             where TS2 : TS;
 
+        IBehaviorBuilder<TC, TE, TS> SetEventHandlerChangingBehavior<TE2, TS2>
+            (Func<TE2, ShardedEntity<TC, TE, TS>.Behavior> func)
+            where TE2 : TE;
+
         IBehaviorBuilder<TC, TE, TS> SetReadOnlyCommandHandler<TC2, TR2>(Action<TC2, IReadOnlyCommandContext> func)
             where TC2 : TC, IReplyType<TR2>
             where TR2 : class;

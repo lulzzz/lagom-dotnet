@@ -60,7 +60,8 @@ namespace wyvern.api.@internal.behavior
         /// </summary>
         /// <value></value>
         private ImmutableDictionary<Type,
-            Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>> EventHandlers { get; }
+            Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>> EventHandlers
+        { get; }
 
         /// <summary>
         ///     Set the command handler for the given type
@@ -80,7 +81,7 @@ namespace wyvern.api.@internal.behavior
                     typeof(TC2),
                     (ctx, e) =>
                     {
-                        var d = func.Invoke((TC2) ctx, e);
+                        var d = func.Invoke((TC2)ctx, e);
                         return d;
                     }
                 )
@@ -101,7 +102,26 @@ namespace wyvern.api.@internal.behavior
                 State,
                 EventHandlers.Add(
                     typeof(TE2),
-                    (e, b) => b.WithState(func.Invoke((TE2) e))
+                    (e, b) => b.WithState(func.Invoke((TE2)e))
+                ),
+                CommandHandlers
+            );
+
+        /// <summary>
+        ///     Set the event handler for the given type
+        /// </summary>
+        /// <param name="func"></param>
+        /// <typeparam name="TE2"></typeparam>
+        /// <typeparam name="TS2"></typeparam>
+        /// <returns></returns>
+        public IBehaviorBuilder<TC, TE, TS> SetEventHandlerChangingBehavior<TE2, TS2>
+            (Func<TE2, ShardedEntity<TC, TE, TS>.Behavior> func)
+            where TE2 : TE
+            => new BehaviorBuilder<TC, TE, TS>(
+                State,
+                EventHandlers.Add(
+                    typeof(TE2),
+                    (e, b) => func.Invoke((TE2)e)
                 ),
                 CommandHandlers
             );
@@ -125,7 +145,7 @@ namespace wyvern.api.@internal.behavior
                     typeof(TC2),
                     (ctx, e) =>
                     {
-                        func.Invoke((TC2) ctx, e);
+                        func.Invoke((TC2)ctx, e);
                         return e.Done();
                     }
                 )

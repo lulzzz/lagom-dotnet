@@ -41,7 +41,6 @@ namespace wyvern.api.@internal.sharding
         /// </summary>
         private long EventCount;
 
-
         /// <summary>
         ///     Public constructor (to be used only via Props)
         /// </summary>
@@ -151,7 +150,8 @@ namespace wyvern.api.@internal.sharding
                 return true;
             }
 
-            var replyType = commandType.GetInterface(typeof(IReplyType<>).Name).GetGenericArguments()[0];
+            // TODO: possible to have ambiguous match, ignore this for a bit..
+            //var replyType = commandType.GetInterface(typeof(IReplyType<>).Name).GetGenericArguments()[0];
 
             var commandContext = newContext(Sender);
 
@@ -241,31 +241,34 @@ namespace wyvern.api.@internal.sharding
         {
             var commandType = message.GetType();
 
+            // Normal command handler
             if (message is TC)
             {
-                // Prefix command handler
-                HandleCommand(typeof(TC), message as TC);
-                if (commandType.IsSubclassOf(typeof(TC)))
-                {
-                    // Main command handler
-                    HandleCommand(message.GetType(), message);
-                }
-            }
+                // Apply base command to initiate migration
+                if (EventCount == 0) // TODO: This should be a switchabe feature
+                    HandleCommand(typeof(TC), message);
 
+                if (commandType.IsSubclassOf(typeof(TC)))
+                    HandleCommand(commandType, message);
+            }
+            // Successful snapshot retention
             else if (commandType == typeof(SaveSnapshotSuccess))
             {
                 return true;
             }
-            else if (message is Stop || message is PoisonPill)
-            {
-                Context.Stop(Self);
-            }
+            // Actor due for passivation
             else if (message is ReceiveTimeout)
             {
                 ShardRegion.Context.Parent.Tell(
                     new Passivate(new Stop())
                 );
             }
+            // Cluster prescribing passivation
+            else if (message is Stop || message is PoisonPill)
+            {
+                Context.Stop(Self);
+            }
+            // Unhandled type
             else
             {
                 Log.Warning($"Invalid command type received: illegal base class {commandType}");

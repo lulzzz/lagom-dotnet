@@ -82,14 +82,27 @@ namespace wyvern.api.ioc
                         Parameters = parameters
                     };
 
-                    swaggerDoc.Paths.Add(
-                        restCall.PathPattern,
-                        new PathItem
-                        {
-                            Post = restCall.Method == Method.POST ? operation : null,
-                            Get = restCall.Method == Method.GET ? operation : null
-                        }
-                    );
+
+                    var exists = swaggerDoc.Paths.ContainsKey(restCall.PathPattern);
+                    var path = exists ? swaggerDoc.Paths[restCall.PathPattern] : new PathItem();
+                    if (!exists)
+                    {
+                        swaggerDoc.Paths.Add(
+                            restCall.PathPattern,
+                            path
+                        );
+                    }
+
+                    if (restCall.Method == Method.POST)
+                    {
+                        if (path.Post != null) throw new InvalidOperationException("Duplicate path");
+                        path.Post = operation;
+                    }
+                    else if (restCall.Method == Method.GET)
+                    {
+                        if (path.Get != null) throw new InvalidOperationException("Duplicate path");
+                        path.Get = operation;
+                    }
                 }
             }
         }
