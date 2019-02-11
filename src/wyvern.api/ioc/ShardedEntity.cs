@@ -151,7 +151,7 @@ namespace wyvern.api.ioc
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
             /// <returns></returns>
-            IPersist<TE> ThenPersistAll(TE[] e, Action<TE> afterPersist = null);
+            IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action<TE> afterPersist = null);
 
             /// <summary>
             ///     Done handler
@@ -195,6 +195,13 @@ namespace wyvern.api.ioc
                 );
             }
 
+            /// <summary>
+            /// Persist the events atomically and execute the side-effect once for each
+            /// event.
+            /// </summary>
+            /// <param name="e"></param>
+            /// <param name="afterPersist"></param>
+            /// <returns></returns>
             public IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action<TE> afterPersist = null)
             {
                 return new PersistAll<TE>(

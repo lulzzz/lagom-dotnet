@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Akka.Actor;
 using Akka.Cluster.Sharding;
 using Akka.Dispatch.SysMsg;
@@ -185,7 +186,7 @@ namespace wyvern.api.@internal.sharding
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(ex, "Failed to execute persist on command");
+                            Log.Error(ex, "Failed to execute persist side-effect on command");
                             commandContext.CommandFailed(ex);
                             throw ex;
                         }
@@ -195,8 +196,18 @@ namespace wyvern.api.@internal.sharding
 
                 if (resultGenericTypeDef == typeof(PersistAll<>))
                 {
-                    var events = (ImmutableArray<TE>)resultType.GetProperty("Events").GetValue(result, null);
-                    var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
+                    var events = (ImmutableArray<TE>)resultType
+                        .GetProperty(
+                            "Events",
+                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
+                        )
+                        .GetValue(result, null);
+
+                    var ap = resultType.GetProperty(
+                            "AfterPersist",
+                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
+                        ).GetValue(result, null);
+
                     var count = events.Length;
                     var snap = false;
 
@@ -225,7 +236,7 @@ namespace wyvern.api.@internal.sharding
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(ex, "Failed to execute persistAll on command");
+                                Log.Error(ex, "Failed to execute persistAll side-effect on command");
                                 commandContext.CommandFailed(ex);
                                 throw ex;
                             }
@@ -257,7 +268,7 @@ namespace wyvern.api.@internal.sharding
             if (message is TC)
             {
                 // Apply base command to initiate migration
-                if (EventCount == 0) // TODO: This should be a switchabe feature
+                if (EventCount == 0) // TODO: This should be a switchable feature
                     HandleCommand(typeof(TC), message);
 
                 if (commandType.IsSubclassOf(typeof(TC)))
@@ -335,7 +346,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Apply given event to the entity, thereby replacing its behavior set
+        /// Apply given event to the entity, thereby replacing its behavior set
         /// </summary>
         /// <param name="e"></param>
         private void ApplyEvent(TE e)
