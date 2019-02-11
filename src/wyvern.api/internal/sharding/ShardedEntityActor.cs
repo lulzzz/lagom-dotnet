@@ -169,8 +169,6 @@ namespace wyvern.api.@internal.sharding
                     var e = (TE)resultType.GetProperty("Event").GetValue(result, null);
                     var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
 
-                    // TODO: Make sure that nothing in here is async !!
-
                     ApplyEvent(e);
                     Persist(Tag(e), x =>
                     {
@@ -201,22 +199,36 @@ namespace wyvern.api.@internal.sharding
                     var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
                     var count = events.Length;
                     var snap = false;
+
                     foreach (var @event in events)
                         ApplyEvent(@event);
+
                     PersistAll(
                         events.Select(x => Tag(x)),
                         evt =>
                         {
-                            EventCount += 1;
-                            count -= 1;
-                            if (ap != null && count == 0)
+                            try
                             {
-                                var mi = ap.GetType().GetMethod("Invoke");
-                                mi.Invoke(ap, new[] { evt });
-                            }
+                                EventCount += 1;
+                                count -= 1;
 
-                            if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0) snap = true;
-                            if (count == 0 && snap) SaveSnapshot(Entity.BehaviorProperty.State);
+                                if (ap != null && count == 0)
+                                {
+                                    var mi = ap.GetType().GetMethod("Invoke");
+                                    mi.Invoke(ap, new[] { evt });
+                                }
+
+                                if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0)
+                                    snap = true;
+                                if (count == 0 && snap)
+                                    SaveSnapshot(Entity.BehaviorProperty.State);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Failed to execute persistAll on command");
+                                commandContext.CommandFailed(ex);
+                                throw ex;
+                            }
                         }
                     );
                 }

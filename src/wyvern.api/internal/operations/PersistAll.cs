@@ -9,8 +9,8 @@ namespace wyvern.api.@internal.operations
     /// </summary>
     /// <typeparam name="E"></typeparam>
     [Immutable]
-    internal sealed class PersistAll<E>
-        where E : IEvent
+    internal sealed class PersistAll<E> : IPersist<E>
+        where E : AbstractEvent
     {
         /// <summary>
         ///     Events array

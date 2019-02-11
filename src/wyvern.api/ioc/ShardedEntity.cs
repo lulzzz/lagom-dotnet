@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Streams.Util;
 using wyvern.api.@internal.behavior;
@@ -145,6 +146,14 @@ namespace wyvern.api.ioc
             IPersist<TE> ThenPersist(TE e, Action<TE> afterPersist = null);
 
             /// <summary>
+            ///     Persist all and after persist handlers
+            /// </summary>
+            /// <param name="e"></param>
+            /// <param name="afterPersist"></param>
+            /// <returns></returns>
+            IPersist<TE> ThenPersistAll(TE[] e, Action<TE> afterPersist = null);
+
+            /// <summary>
             ///     Done handler
             /// </summary>
             /// <returns></returns>
@@ -181,6 +190,14 @@ namespace wyvern.api.ioc
             public IPersist<TE> ThenPersist(TE e, Action<TE> afterPersist = null)
             {
                 return new PersistOne<TE>(
+                    e,
+                    afterPersist ?? (_ => Reply(Akka.Done.Instance))
+                );
+            }
+
+            public IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action<TE> afterPersist = null)
+            {
+                return new PersistAll<TE>(
                     e,
                     afterPersist ?? (_ => Reply(Akka.Done.Instance))
                 );
