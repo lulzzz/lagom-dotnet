@@ -60,10 +60,10 @@ namespace wyvern.api.@internal.sharding
             string journalPluginId
         )
         {
+            // TODO: Allow base class event handling to be configured
+
             PersistenceIdPrefix = idPrefix;
             EntityId = entityId.OrElse(
-                // TODO: URLDecoder.decode(self.path.name, ByteString.UTF_8)
-                // Might be causing the double encode...
                 Self.Path.Name
             );
 
@@ -143,6 +143,95 @@ namespace wyvern.api.@internal.sharding
         private IReadOnlyDictionary<Type, Func<TC, ShardedEntity<TC, TE, TS>.ICommandContext<TC>, IPersist<TE>>>
             CommandHandlers => Entity.BehaviorProperty.CommandHandlers;
 
+        private bool HandleCommand(Type commandType, object message)
+        {
+            if (!CommandHandlers.TryGetValue(commandType, out var commandHandler))
+            {
+                Log.Warning($"Unknown command type received: {commandType}");
+                return true;
+            }
+
+            var replyType = commandType.GetInterface(typeof(IReplyType<>).Name).GetGenericArguments()[0];
+
+            var commandContext = newContext(Sender);
+
+            try
+            {
+                var command = (TC)message;
+                var result = commandHandler.Invoke(command, commandContext);
+                var resultType = result.GetType();
+                var resultGenericTypeDef = resultType.GetGenericTypeDefinition();
+
+                if (resultGenericTypeDef == typeof(PersistNone<>)) return true;
+
+                if (resultGenericTypeDef == typeof(PersistOne<>))
+                {
+                    var e = (TE)resultType.GetProperty("Event").GetValue(result, null);
+                    var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
+
+                    // TODO: Make sure that nothing in here is async !!
+
+                    ApplyEvent(e);
+                    Persist(Tag(e), x =>
+                    {
+                        try
+                        {
+                            EventCount++;
+                            if (ap != null)
+                            {
+                                var mi = ap.GetType().GetMethod("Invoke");
+                                mi.Invoke(ap, new object[] { e });
+                            }
+                            if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0)
+                                SaveSnapshot(Entity.BehaviorProperty.State);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to execute persist on command");
+                            commandContext.CommandFailed(ex);
+                            throw ex;
+                        }
+                    });
+                    return true;
+                }
+
+                if (resultGenericTypeDef == typeof(PersistAll<>))
+                {
+                    var events = (ImmutableArray<TE>)resultType.GetProperty("Events").GetValue(result, null);
+                    var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
+                    var count = events.Length;
+                    var snap = false;
+                    foreach (var @event in events)
+                        ApplyEvent(@event);
+                    PersistAll(
+                        events.Select(x => Tag(x)),
+                        evt =>
+                        {
+                            EventCount += 1;
+                            count -= 1;
+                            if (ap != null && count == 0)
+                            {
+                                var mi = ap.GetType().GetMethod("Invoke");
+                                mi.Invoke(ap, new[] { evt });
+                            }
+
+                            if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0) snap = true;
+                            if (count == 0 && snap) SaveSnapshot(Entity.BehaviorProperty.State);
+                        }
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Non fatal.
+                Log.Error(ex, "Failed to evaluate command");
+                commandContext.CommandFailed(ex);
+                throw;
+            }
+
+            return true;
+        }
+
         /// <summary>
         ///     Entrypoint for receiving a command
         /// </summary>
@@ -151,94 +240,18 @@ namespace wyvern.api.@internal.sharding
         protected override bool ReceiveCommand(object message)
         {
             var commandType = message.GetType();
-            if (commandType.IsSubclassOf(typeof(TC)))
+
+            if (message is TC)
             {
-                if (!CommandHandlers.TryGetValue(commandType, out var commandHandler))
+                // Prefix command handler
+                HandleCommand(typeof(TC), message as TC);
+                if (commandType.IsSubclassOf(typeof(TC)))
                 {
-                    Log.Warning($"Unknown command type received: {commandType}");
-                    return true;
-                }
-
-                var replyType = commandType.GetInterface(typeof(IReplyType<>).Name).GetGenericArguments()[0];
-
-                var commandContext = newContext(Sender);
-
-                try
-                {
-                    // TODO: entity id not being set
-
-                    var command = (TC)message;
-                    var result = commandHandler.Invoke(command, commandContext);
-                    var resultType = result.GetType();
-                    var resultGenericTypeDef = resultType.GetGenericTypeDefinition();
-
-                    if (resultGenericTypeDef == typeof(PersistNone<>)) return true;
-
-                    if (resultGenericTypeDef == typeof(PersistOne<>))
-                    {
-                        var e = (TE)resultType.GetProperty("Event").GetValue(result, null);
-                        var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
-
-                        // TODO: Make sure that nothing in here is async !!
-
-                        ApplyEvent(e);
-                        Persist(Tag(e), x =>
-                        {
-                            try
-                            {
-                                EventCount++;
-                                if (ap != null)
-                                {
-                                    var mi = ap.GetType().GetMethod("Invoke");
-                                    mi.Invoke(ap, new object[] { e });
-                                }
-                                if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0)
-                                    SaveSnapshot(Entity.BehaviorProperty.State);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Failed to execute persist on command");
-                                commandContext.CommandFailed(ex);
-                                throw ex;
-                            }
-                        });
-                        return true;
-                    }
-
-                    if (resultGenericTypeDef == typeof(PersistAll<>))
-                    {
-                        var events = (ImmutableArray<TE>)resultType.GetProperty("Events").GetValue(result, null);
-                        var ap = resultType.GetProperty("AfterPersist").GetValue(result, null);
-                        var count = events.Length;
-                        var snap = false;
-                        foreach (var @event in events)
-                            ApplyEvent(@event);
-                        PersistAll(
-                            events.Select(x => Tag(x)),
-                            evt =>
-                            {
-                                EventCount += 1;
-                                count -= 1;
-                                if (ap != null && count == 0)
-                                {
-                                    var mi = ap.GetType().GetMethod("Invoke");
-                                    mi.Invoke(ap, new[] { evt });
-                                }
-
-                                if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0) snap = true;
-                                if (count == 0 && snap) SaveSnapshot(Entity.BehaviorProperty.State);
-                            }
-                        );
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Non fatal.
-                    Log.Error(ex, "Failed to evaluate command");
-                    commandContext.CommandFailed(ex);
-                    throw;
+                    // Main command handler
+                    HandleCommand(message.GetType(), message);
                 }
             }
+
             else if (commandType == typeof(SaveSnapshotSuccess))
             {
                 return true;
