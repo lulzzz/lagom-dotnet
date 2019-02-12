@@ -151,7 +151,7 @@ namespace wyvern.api.ioc
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
             /// <returns></returns>
-            IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action<TE> afterPersist = null);
+            IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action afterPersist = null);
 
             /// <summary>
             ///     Done handler
@@ -202,11 +202,11 @@ namespace wyvern.api.ioc
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
             /// <returns></returns>
-            public IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action<TE> afterPersist = null)
+            public IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action afterPersist = null)
             {
                 return new PersistAll<TE>(
                     e,
-                    afterPersist ?? (_ => Reply(Akka.Done.Instance))
+                    afterPersist ?? (() => Reply(Akka.Done.Instance))
                 );
             }
 

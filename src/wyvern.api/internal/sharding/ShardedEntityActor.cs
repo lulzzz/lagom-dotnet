@@ -226,7 +226,7 @@ namespace wyvern.api.@internal.sharding
                                 if (ap != null && count == 0)
                                 {
                                     var mi = ap.GetType().GetMethod("Invoke");
-                                    mi.Invoke(ap, new[] { evt });
+                                    mi.Invoke(ap, null);
                                 }
 
                                 if (SnapshotAfter > 0 && EventCount % SnapshotAfter == 0)

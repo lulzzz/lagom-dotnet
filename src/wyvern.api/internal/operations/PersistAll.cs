@@ -22,7 +22,7 @@ namespace wyvern.api.@internal.operations
         ///     After persist effect
         /// </summary>
         /// <value></value>
-        internal Action<E> AfterPersist { get; }
+        internal Action AfterPersist { get; }
 
         /// <summary>
         ///     Constructor
@@ -30,7 +30,7 @@ namespace wyvern.api.@internal.operations
         /// <param name="events"></param>
         /// <param name="afterPersist"></param>
         /// <returns></returns>
-        public PersistAll(ImmutableArray<E> events, Action<E> afterPersist) =>
+        public PersistAll(ImmutableArray<E> events, Action afterPersist) =>
             (Events, AfterPersist) = (events, afterPersist);
 
     }

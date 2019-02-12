@@ -12,9 +12,11 @@ namespace wyvern.api
         IShardedEntityRegistryBuilder WithExtension<T, TI>()
             where T : class, IExtension
             where TI : IExtensionId;
+        
         IShardedEntityRegistryBuilder WithReadSide<TE, TP>()
             where TE : AggregateEvent<TE>
             where TP : ReadSideProcessor<TE>, new();
+        
         IShardedEntityRegistryBuilder WithShardedEntity<T, C, E, S>()
             where T : ShardedEntity<C, E, S>, new()
             where C : AbstractCommand
