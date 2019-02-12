@@ -87,6 +87,7 @@ public class ReadSideActor<TE> : ReceiveActor
             var backoffSource = RestartSource.WithBackoff(
                 () =>
                 {
+                    // TODO: SQL Server connection string
                     ReadSideHandler<TE> handler = Processor().BuildHandler();
                     var offsetTask = handler.Prepare(tag);
                     return Source.FromTask(offsetTask)

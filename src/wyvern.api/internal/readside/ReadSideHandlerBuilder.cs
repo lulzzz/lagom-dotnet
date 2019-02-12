@@ -51,7 +51,7 @@ public class ReadSideHandlerBuilder<TE> : IReadSideHandlerBuilder<TE>
 
     public ReadSideHandler<TE> Build()
     {
-        return new SqlServerReadSideHandler<TE>(globalPrepare, prepare, EventHandlers);
+        return new SqlServerReadSideHandler<TE>(ReadSideId, globalPrepare, prepare, EventHandlers);
     }
 }
 

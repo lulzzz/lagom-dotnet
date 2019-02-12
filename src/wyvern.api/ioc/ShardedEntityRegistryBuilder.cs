@@ -9,6 +9,7 @@ using wyvern.entity.@event;
 using wyvern.entity.@event.aggregate;
 using wyvern.entity.state;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using static ClusterDistributionExtensionProvider;
 
 namespace wyvern.api.ioc
@@ -16,14 +17,16 @@ namespace wyvern.api.ioc
     public sealed class ShardedEntityRegistryBuilder : IShardedEntityRegistryBuilder
     {
         private ActorSystem ActorSystem { get; }
+        private IConfiguration Config { get; }
 
         private List<Action<IShardedEntityRegistry>> RegistryDelegates { get; } = new List<Action<IShardedEntityRegistry>>();
         private List<Action<ReadSide>> ReadSideDelegates { get; } = new List<Action<ReadSide>>();
         private List<Action<ActorSystem>> ExtensionDelegates { get; } = new List<Action<ActorSystem>>();
 
-        public ShardedEntityRegistryBuilder(ActorSystem actorSystem)
+        public ShardedEntityRegistryBuilder(ActorSystem actorSystem, IConfiguration config)
         {
             ActorSystem = actorSystem;
+            Config = config;
             ExtensionDelegates.Add(x => x.WithExtension<ClusterDistribution, ClusterDistributionExtensionProvider>());
         }
 
@@ -44,7 +47,7 @@ namespace wyvern.api.ioc
             where TP : ReadSideProcessor<TE>, new()
         {
             ReadSideDelegates.Add(
-                x => x.Register(() => new TP())
+                x => x.Register(() => new TP { Config = Config })
             );
             return this;
         }
@@ -75,19 +78,10 @@ namespace wyvern.api.ioc
                 registry
             );
 
-            // TODO: Execution context, materializer
+            // TODO: Execution context, materializer for streams
 
             foreach (var readsideDelegate in ReadSideDelegates)
                 readsideDelegate.Invoke(readside);
-
-            // TODO: visualizer
-            // Task.Delay(5000)
-            //     .ContinueWith((x) =>
-            //     {
-            //         //webVisualizer.Start();
-            //         //commandLineVisualizer.Run();
-            //         return Task.CompletedTask;
-            //     });
 
             return registry;
         }

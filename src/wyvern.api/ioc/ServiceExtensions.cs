@@ -130,10 +130,12 @@ namespace wyvern.api.ioc
             var holder = new MethodTopicHolder(method);
 
             // TODO: Serializers
-            // TODO: This should return new topic calls that fill the descriptor.
+            // TODO: This should return new topic calls that fill the descriptor
+
             topicCall.GetType()
                 .GetMethod("WithTopicHolder")
                 .Invoke(topicCall, new object[] { holder });
+
             //  .WithMessageSerializer(resolvedMessageSerializer)
         }
 
