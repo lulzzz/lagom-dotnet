@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
@@ -55,18 +56,18 @@ namespace wyvern.api.ioc
                     RegisterTopic(topic);
             }
 
-            // TODO: original code replaced all calls / topics on the descriptor
-
             AddVisualizer(router);
 
             var routes = router.Build();
             app.UseRouter(routes);
 
+            var config = services.GetService<IConfiguration>();
+            var swaggerDocsApiName = config.GetValue<string>("SwaggerDocs:ApiName", "My API V1");
+
             app.UseSwagger();
             app.UseSwaggerUI(x =>
             {
-                // TODO: Expose naming conventions to configuration
-                x.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                x.SwaggerEndpoint("/swagger/v1/swagger.json", swaggerDocsApiName);
                 x.RoutePrefix = string.Empty;
             });
 
@@ -110,11 +111,6 @@ namespace wyvern.api.ioc
                             method = preResolved;
                             break;
 
-                        // case Object _:
-                        //     // TODO: Try catch
-                        //     //MethodRefResolver.resolveMethodRef(lambda)
-                        //     throw new NotImplementedException();
-
                         default:
                             throw new NotImplementedException();
                     }
@@ -129,14 +125,12 @@ namespace wyvern.api.ioc
 
             var holder = new MethodTopicHolder(method);
 
-            // TODO: Serializers
-            // TODO: This should return new topic calls that fill the descriptor
-
             topicCall.GetType()
                 .GetMethod("WithTopicHolder")
                 .Invoke(topicCall, new object[] { holder });
 
-            //  .WithMessageSerializer(resolvedMessageSerializer)
+            /* Serializers */
+
         }
 
         private static void RegisterCall(IRouteBuilder router, Service service, Type serviceType, ICall call)
@@ -183,6 +177,7 @@ namespace wyvern.api.ioc
                     }
                     catch (Exception ex)
                     {
+                        // TODO: Logger extensions
                         res.StatusCode = 500;
                         var result = task.Result as Exception;
                         var jsonString = JsonConvert.SerializeObject(result.Message);

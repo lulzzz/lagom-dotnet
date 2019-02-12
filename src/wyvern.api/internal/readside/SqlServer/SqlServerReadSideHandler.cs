@@ -56,7 +56,11 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
                 readSideId = ReadSideId,
                 tag = tag.Tag
             });
-            return Task.FromResult(Offset.Sequence(offset));
+            return Task.FromResult(
+                Offset.Sequence(
+                    offset
+                )
+            );
         }
     }
 
@@ -84,9 +88,9 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
                                 and tag = @tag",
                                new
                                {
-                                   offset = pair.Item2,
+                                   offset = (pair.Item2 as Sequence).Value,
                                    readSideId = ReadSideId,
-                                   tag = pair.Item1.AggregateTag
+                                   tag = (pair.Item1.AggregateTag as AggregateEventTag).Tag
                                });
                        }
 
