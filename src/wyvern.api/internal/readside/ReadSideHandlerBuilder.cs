@@ -9,13 +9,15 @@ public class ReadSideHandlerBuilder<TE> : IReadSideHandlerBuilder<TE>
 {
 
     string ReadSideId { get; }
+    DbConnectionFactory DbConnectionFactory { get; }
 
     Action<SqlConnection> globalPrepare = x => { };
     Action<SqlConnection, AggregateEventTag> prepare = (x, y) => { };
     private Dictionary<Type, Action<SqlConnection, TE, Offset>> EventHandlers = new Dictionary<Type, Action<SqlConnection, TE, Offset>>();
 
-    public ReadSideHandlerBuilder(string readSideId)
+    public ReadSideHandlerBuilder(DbConnectionFactory dbConnectionFactory, string readSideId)
     {
+        DbConnectionFactory = dbConnectionFactory;
         ReadSideId = readSideId;
     }
 
@@ -51,7 +53,8 @@ public class ReadSideHandlerBuilder<TE> : IReadSideHandlerBuilder<TE>
 
     public ReadSideHandler<TE> Build()
     {
-        return new SqlServerReadSideHandler<TE>(ReadSideId, globalPrepare, prepare, EventHandlers);
+        return new SqlServerReadSideHandler<TE>(
+            DbConnectionFactory, ReadSideId, globalPrepare, prepare, EventHandlers);
     }
 }
 

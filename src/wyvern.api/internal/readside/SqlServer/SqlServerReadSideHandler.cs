@@ -6,23 +6,27 @@ using Akka;
 using Akka.Persistence.Query;
 using Akka.Streams.Dsl;
 using Dapper;
+using Microsoft.Extensions.Configuration;
 using wyvern.entity.@event.aggregate;
 
 public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
      where TE : AggregateEvent<TE>
 {
+    DbConnectionFactory DbConnectionFactory { get; }
     public string ReadSideId { get; }
     public Action<SqlConnection> GlobalPrepareCallback { get; }
     public Action<SqlConnection, AggregateEventTag> PrepareCallback { get; }
     public Dictionary<Type, Action<SqlConnection, TE, Offset>> EventHandlers { get; }
 
     public SqlServerReadSideHandler(
+        DbConnectionFactory dbConnectionFactory,
         string readSideId,
         Action<SqlConnection> globalPrepareCallback,
         Action<SqlConnection, AggregateEventTag> prepareCallback,
         Dictionary<Type, Action<SqlConnection, TE, Offset>> eventHandlers
     )
     {
+        DbConnectionFactory = dbConnectionFactory;
         ReadSideId = readSideId;
         GlobalPrepareCallback = globalPrepareCallback;
         PrepareCallback = prepareCallback;
@@ -31,7 +35,7 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
 
     public override Task<Done> GlobalPrepare()
     {
-        using (var con = new SqlConnection(constr))
+        using (var con = DbConnectionFactory.Create())
         {
             con.Execute(@"
             if not exists (select * from sysobjects where name='read_side_offsets' and xtype='U')
@@ -44,7 +48,7 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
 
     public override Task<Offset> Prepare(AggregateEventTag tag)
     {
-        using (var con = new SqlConnection(constr))
+        using (var con = DbConnectionFactory.Create())
         {
             var offset = con.QueryFirstOrDefault<long>(@"
                 select sequence_offset
@@ -72,14 +76,17 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
                    {
                        if (EventHandlers.TryGetValue(pair.Item1.GetType(), out var dbAction))
                        {
-                           dbAction(new SqlConnection(constr), pair.Item1, pair.Item2);
+                           using (var con = DbConnectionFactory.Create())
+                           {
+                               dbAction(con, pair.Item1, pair.Item2);
+                           }
                        }
                        else
                        {
                            // TODO: log the unhandled event
                        }
 
-                       using (var con = new SqlConnection(constr))
+                       using (var con = DbConnectionFactory.Create())
                        {
                            con.Execute(@"
                                 update read_side_offsets

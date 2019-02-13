@@ -20,20 +20,56 @@ namespace wyvern.api.ioc
 {
     public static class ServiceExtensions
     {
-        public static IServiceCollection AddReactiveServices(this IServiceCollection services,
-            Action<ReactiveServicesBuilder> builderDelegate)
+        [Flags]
+        public enum ReactiveServicesOption
         {
+            None,
+            WithApi,
+            WithSwagger,
+            WithVisualizer
+        }
+
+        static ReactiveServicesOption Options;
+
+        /// <summary>
+        /// Add the main reactive services components, including swagger generation
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="builderDelegate"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddReactiveServices(this IServiceCollection services,
+            Action<ReactiveServicesBuilder> builderDelegate, ReactiveServicesOption options)
+        {
+            Options = options;
+
+            // Add reactive services core
             var builder = new ReactiveServicesBuilder();
             builderDelegate(builder);
-            var reactiveServices = builder.Build(services);
-            services.AddSingleton(reactiveServices);
-            services.AddRouting();
-            services.TryAddSingleton<IApiDescriptionGroupCollectionProvider, ReactiveServicesApiDescriptionGroupProvider>();
-            services.AddSwaggerGen(c =>
+            services.AddSingleton(builder.Build(services));
+
+            // Optionally, expose reactive services via API
+            if (Options.HasFlag(ReactiveServicesOption.WithApi))
             {
-                c.DocumentFilter<ReactiveServicesApiDescriptionsDocumentFilter>();
-                c.SwaggerDoc("v1", new Info() { Title = "My Reactive Services", Version = "v1" });
-            });
+                // Routing for mapping HTTP URLs in Kestrel
+                services.AddRouting();
+
+                // Swagger generation
+                if (Options.HasFlag(ReactiveServicesOption.WithSwagger))
+                {
+                    services.TryAddSingleton<IApiDescriptionGroupCollectionProvider, ReactiveServicesApiDescriptionGroupProvider>();
+                    services.AddSwaggerGen(c =>
+                    {
+                        c.DocumentFilter<ReactiveServicesApiDescriptionsDocumentFilter>();
+                        c.SwaggerDoc("v1", new Info()
+                        {
+                            // TODO: make this name configurable...
+                            Title = "My Reactive Services",
+                            Version = "v1"
+                        });
+                    });
+                }
+            }
+
             return services;
         }
 
@@ -42,38 +78,67 @@ namespace wyvern.api.ioc
             var services = app.ApplicationServices;
             var reactiveServices = services.GetService<IReactiveServices>();
 
-            var router = new RouteBuilder(app);
-
-            foreach (var (serviceType, _) in reactiveServices)
+            Action<Action<Service, Type>> serviceIterator = (x) =>
             {
-                var instance = services.GetService(serviceType);
-                var service = (Service)instance;
+                foreach (var (serviceType, _) in reactiveServices)
+                {
+                    var instance = services.GetService(serviceType);
+                    var service = (Service)instance;
+                    x(service, serviceType);
+                }
+            };
 
-                foreach (var call in service.Descriptor.Calls)
-                    RegisterCall(router, service, serviceType, call);
-
+            // Register any service bound topics
+            serviceIterator((service, serviceType) =>
+            {
                 foreach (var topic in service.Descriptor.Topics)
                     RegisterTopic(topic);
-            }
-
-            AddVisualizer(router);
-
-            var routes = router.Build();
-            app.UseRouter(routes);
-
-            var config = services.GetService<IConfiguration>();
-            var swaggerDocsApiName = config.GetValue<string>("SwaggerDocs:ApiName", "My API V1");
-
-            app.UseSwagger();
-            app.UseSwaggerUI(x =>
-            {
-                x.SwaggerEndpoint("/swagger/v1/swagger.json", swaggerDocsApiName);
-                x.RoutePrefix = string.Empty;
             });
+
+            // Build the API components
+            if (Options.HasFlag(ReactiveServicesOption.WithApi))
+            {
+                var router = new RouteBuilder(app);
+
+                // Register all calls for the services
+                serviceIterator((service, serviceType) =>
+                {
+                    foreach (var call in service.Descriptor.Calls)
+                        RegisterCall(router, service, serviceType, call);
+                });
+
+                // Visualization components
+                if (Options.HasFlag(ReactiveServicesOption.WithVisualizer))
+                    AddVisualizer(router);
+
+                // Build the API
+                var routes = router.Build();
+                app.UseRouter(routes);
+
+                // Optionally, add swagger components
+                if (Options.HasFlag(ReactiveServicesOption.WithSwagger))
+                {
+                    var config = services.GetService<IConfiguration>();
+                    var swaggerDocsApiName = config.GetValue<string>("SwaggerDocs:ApiName", "My API V1");
+
+                    app.UseSwagger();
+                    app.UseSwaggerUI(x =>
+                    {
+                        x.SwaggerEndpoint("/swagger/v1/swagger.json", swaggerDocsApiName);
+                        x.RoutePrefix = string.Empty;
+                    });
+                }
+
+            }
 
             return app;
         }
 
+        /// <summary>
+        /// Add a cluster visualizer to the endpoints /api/visualizer/list and
+        /// /api/visualizer/send
+        /// </summary>
+        /// <param name="router"></param>
         private static void AddVisualizer(IRouteBuilder router)
         {
             router.MapGet("/api/visualizer/list", async (req, res, ctx) =>
@@ -133,6 +198,13 @@ namespace wyvern.api.ioc
 
         }
 
+        /// <summary>
+        /// Register a route to the service call
+        /// </summary>
+        /// <param name="router"></param>
+        /// <param name="service"></param>
+        /// <param name="serviceType"></param>
+        /// <param name="call"></param>
         private static void RegisterCall(IRouteBuilder router, Service service, Type serviceType, ICall call)
         {
             var (routeMapper, path) = ExtractRoutePath(router, call);
@@ -199,6 +271,9 @@ namespace wyvern.api.ioc
             );
         }
 
+        /// <summary>
+        /// Extract route path from call identifier
+        /// </summary>
         private static (Func<string, Func<HttpRequest, HttpResponse, RouteData, Task>, IRouteBuilder>, string)
             ExtractRoutePath(IRouteBuilder router, ICall call)
         {
