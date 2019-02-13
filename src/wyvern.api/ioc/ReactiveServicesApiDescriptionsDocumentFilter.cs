@@ -93,15 +93,30 @@ namespace wyvern.api.ioc
                         );
                     }
 
-                    if (restCall.Method == Method.POST)
+                    if (restCall.Method == Method.DELETE)
                     {
-                        if (path.Post != null) throw new InvalidOperationException("Duplicate path");
-                        path.Post = operation;
+                        if (path.Delete != null) throw new InvalidOperationException("Duplicate path");
+                        path.Delete = operation;
                     }
                     else if (restCall.Method == Method.GET)
                     {
                         if (path.Get != null) throw new InvalidOperationException("Duplicate path");
                         path.Get = operation;
+                    }
+                    else if (restCall.Method == Method.POST)
+                    {
+                        if (path.Post != null) throw new InvalidOperationException("Duplicate path");
+                        path.Post = operation;
+                    }
+                    else if (restCall.Method == Method.PATCH)
+                    {
+                        if (path.Patch != null) throw new InvalidOperationException("Duplicate path");
+                        path.Patch = operation;
+                    }
+                    else if (restCall.Method == Method.PUT)
+                    {
+                        if (path.Put != null) throw new InvalidOperationException("Duplicate path");
+                        path.Put = operation;
                     }
                 }
             }

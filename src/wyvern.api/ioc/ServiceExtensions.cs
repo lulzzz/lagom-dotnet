@@ -282,13 +282,20 @@ namespace wyvern.api.ioc
                 case PathCallId pathCallIdentifier:
                     throw new InvalidOperationException("PathCallId path type not set up");
 
-                // ReSharper disable once PossibleUnintendedReferenceComparison
+                case RestCallId restCallIdentifier when restCallIdentifier.Method == Method.DELETE:
+                    return (router.MapDelete, restCallIdentifier.PathPattern);
+
                 case RestCallId restCallIdentifier when restCallIdentifier.Method == Method.GET:
                     return (router.MapGet, restCallIdentifier.PathPattern);
 
-                // ReSharper disable once PossibleUnintendedReferenceComparison
+                case RestCallId restCallIdentifier when restCallIdentifier.Method == Method.PATCH:
+                    return ((tmpl, hndlr) => router.MapVerb("PATCH", tmpl, hndlr), restCallIdentifier.PathPattern);
+
                 case RestCallId restCallIdentifier when restCallIdentifier.Method == Method.POST:
                     return (router.MapPost, restCallIdentifier.PathPattern);
+
+                case RestCallId restCallIdentifier when restCallIdentifier.Method == Method.PUT:
+                    return (router.MapPut, restCallIdentifier.PathPattern);
 
                 case RestCallId restCallIdentifier:
                     throw new InvalidOperationException("Unhandled REST Method type for RestCallId");
