@@ -79,6 +79,7 @@ namespace wyvern.api.ioc
                         {
                             { "200", new Response { Schema = schemaRegistry.GetOrRegister(resType) } }
                         },
+                        Tags = new[] { service.Descriptor.Name },
                         Parameters = parameters
                     };
 
