@@ -220,8 +220,20 @@ namespace wyvern.api.ioc
                 async (req, res, data) =>
                 {
                     object[] mrefParamArray = mrefParamNames
-                        .Select(x => data.Values[x].ToString())
+                        .Select(x =>
+                        {
+                            try
+                            {
+                                return data.Values[x].ToString();
+                            }
+                            catch (Exception)
+                            {
+                                throw new Exception($"Failed to match URL parameter [{x}] in path template.");
+                            }
+                        })
                         .ToArray();
+
+                    // TODO: Casting...
 
                     var mres = mref.Invoke(service, mrefParamArray);
                     var cref = mres.GetType().GetMethod("Invoke", new[] { requestType });
