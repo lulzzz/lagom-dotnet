@@ -1,7 +1,7 @@
-using wyvern.entity.@event.aggregate;
+// using wyvern.entity.@event.aggregate;
 
-public interface ISqlServerReadSide
-{
-    IReadSideHandlerBuilder<TE> Builder<TE>(string readSideId)
-        where TE : AggregateEvent<TE>;
-}
+// public interface ISqlServerReadSide
+// {
+//     IReadSideHandlerBuilder<TE> Builder<TE>(string readSideId)
+//         where TE : AggregateEvent<TE>;
+// }
