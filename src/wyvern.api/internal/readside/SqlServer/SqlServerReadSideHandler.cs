@@ -12,30 +12,36 @@ using wyvern.entity.@event.aggregate;
 public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
      where TE : AggregateEvent<TE>
 {
-    DbConnectionFactory DbConnectionFactory { get; }
+    private static Func<string, Func<SqlConnection>> ReadSideConnectionFactoryInitializer { get; }
+    = (constr) => () => new SqlConnection(constr);
+
+    private Func<SqlConnection> ReadSideConnectionFactory { get; }
     public string ReadSideId { get; }
     public Action<SqlConnection> GlobalPrepareCallback { get; }
     public Action<SqlConnection, AggregateEventTag> PrepareCallback { get; }
     public Dictionary<Type, Action<SqlConnection, TE, Offset>> EventHandlers { get; }
 
     public SqlServerReadSideHandler(
-        DbConnectionFactory dbConnectionFactory,
+        IConfiguration config,
         string readSideId,
         Action<SqlConnection> globalPrepareCallback,
         Action<SqlConnection, AggregateEventTag> prepareCallback,
         Dictionary<Type, Action<SqlConnection, TE, Offset>> eventHandlers
     )
     {
-        DbConnectionFactory = dbConnectionFactory;
         ReadSideId = readSideId;
         GlobalPrepareCallback = globalPrepareCallback;
         PrepareCallback = prepareCallback;
         EventHandlers = eventHandlers;
+
+        const string readSideConstrKey = "SqlServerReadSide";
+        var constr = config.GetConnectionString(readSideConstrKey);
+        ReadSideConnectionFactory = ReadSideConnectionFactoryInitializer(constr);
     }
 
     public override Task<Done> GlobalPrepare()
     {
-        using (var con = DbConnectionFactory.Create())
+        using (var con = ReadSideConnectionFactory.Invoke())
         {
             con.Execute(@"
             if not exists (select * from sysobjects where name='read_side_offsets' and xtype='U')
@@ -48,7 +54,7 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
 
     public override Task<Offset> Prepare(AggregateEventTag tag)
     {
-        using (var con = DbConnectionFactory.Create())
+        using (var con = ReadSideConnectionFactory.Invoke())
         {
             var offset = con.QueryFirstOrDefault<long>(@"
                 select sequence_offset
@@ -76,7 +82,7 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
                    {
                        if (EventHandlers.TryGetValue(pair.Item1.GetType(), out var dbAction))
                        {
-                           using (var con = DbConnectionFactory.Create())
+                           using (var con = ReadSideConnectionFactory.Invoke())
                            {
                                dbAction(con, pair.Item1, pair.Item2);
                            }
@@ -86,7 +92,7 @@ public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
                            // TODO: log the unhandled event
                        }
 
-                       using (var con = DbConnectionFactory.Create())
+                       using (var con = ReadSideConnectionFactory.Invoke())
                        {
                            con.Execute(@"
                                 update read_side_offsets

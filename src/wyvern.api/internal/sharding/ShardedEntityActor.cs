@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using Akka.Actor;
@@ -42,6 +43,8 @@ namespace wyvern.api.@internal.sharding
         /// </summary>
         private long EventCount;
 
+        private Func<SqlConnection> SqlConnectionFactory { get; }
+
         /// <summary>
         ///     Public constructor (to be used only via Props)
         /// </summary>
@@ -60,8 +63,6 @@ namespace wyvern.api.@internal.sharding
             string journalPluginId
         )
         {
-            // TODO: Allow base class event handling to be configured
-
             PersistenceIdPrefix = idPrefix;
             EntityId = entityId.OrElse(
                 Self.Path.Name
@@ -80,6 +81,9 @@ namespace wyvern.api.@internal.sharding
             JournalPluginId = journalPluginId;
 
             Context.SetReceiveTimeout(passivateAfterIdleTimeout);
+
+            var constr = Context.System.Settings.Config.GetString("wyvern.persistence.ingestion.connection-string");
+            SqlConnectionFactory = () => new SqlConnection(constr);
 
         }
 
@@ -154,7 +158,7 @@ namespace wyvern.api.@internal.sharding
             // TODO: possible to have ambiguous match, ignore this for a bit..
             //var replyType = commandType.GetInterface(typeof(IReplyType<>).Name).GetGenericArguments()[0];
 
-            var commandContext = newContext(Sender);
+            var commandContext = newContext(Sender, SqlConnectionFactory);
 
             try
             {
@@ -366,9 +370,9 @@ namespace wyvern.api.@internal.sharding
         /// </summary>
         /// <typeparam name="TC"></typeparam>
         /// <returns></returns>
-        private ShardedEntity<TC, TE, TS>.CommandContext<TC> newContext(IActorRef sender)
+        private ShardedEntity<TC, TE, TS>.CommandContext<TC> newContext(IActorRef sender, Func<SqlConnection> sqlConnectionFactory)
         {
-            return new ShardedEntity<TC, TE, TS>.CommandContext<TC>(sender);
+            return new ShardedEntity<TC, TE, TS>.IngestionCommandContext<TC>(sender, sqlConnectionFactory);
         }
 
         /// <summary>

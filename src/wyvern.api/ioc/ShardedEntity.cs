@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.SqlClient;
 using Akka.Actor;
 using Akka.Streams.Util;
 using wyvern.api.@internal.behavior;
@@ -158,6 +159,28 @@ namespace wyvern.api.ioc
             /// </summary>
             /// <returns></returns>
             IPersist<TE> Done();
+        }
+
+        public interface IIngestionCommandContext<T> : ICommandContext<T>
+        {
+            SqlConnection SqlConnection();
+        }
+
+        internal class IngestionCommandContext<T> : CommandContext<T>, IIngestionCommandContext<T>
+            where T : class
+        {
+            internal Func<SqlConnection> DbConnectionFactory { get; }
+
+            public IngestionCommandContext(IActorRef sender, Func<SqlConnection> dbConnectionFactory)
+                : base(sender)
+            {
+                DbConnectionFactory = dbConnectionFactory;
+            }
+
+            public SqlConnection SqlConnection()
+            {
+                return DbConnectionFactory.Invoke();
+            }
         }
 
         /// <summary>

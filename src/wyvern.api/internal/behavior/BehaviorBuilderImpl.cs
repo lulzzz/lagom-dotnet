@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using wyvern.api.ioc;
 using wyvern.entity.command;
 using wyvern.entity.@event;
@@ -44,7 +46,13 @@ namespace wyvern.api.@internal.behavior
         }
 
         /// <summary>
-        ///     Entity state
+        /// DbConnectionFactory
+        /// </summary>
+        /// <value></value>
+        protected Func<SqlConnection> IngestionConnectionFactory { get; }
+
+        /// <summary>
+        /// Entity state
         /// </summary>
         /// <value></value>
         private TS State { get; }
@@ -59,8 +67,7 @@ namespace wyvern.api.@internal.behavior
         ///     Map of event types to event handlers
         /// </summary>
         /// <value></value>
-        private ImmutableDictionary<Type,
-            Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>> EventHandlers
+        private ImmutableDictionary<Type, Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>> EventHandlers
         { get; }
 
         /// <summary>
@@ -70,8 +77,8 @@ namespace wyvern.api.@internal.behavior
         /// <typeparam name="TC2"></typeparam>
         /// <typeparam name="TR"></typeparam>
         /// <returns></returns>
-        public IBehaviorBuilder<TC, TE, TS> SetCommandHandler<TC2, TR>
-            (Func<TC2, ShardedEntity<TC, TE, TS>.ICommandContext<TC>, IPersist<TE>> func)
+        public IBehaviorBuilder<TC, TE, TS> SetCommandHandler<TC2, TR>(
+            Func<TC2, ShardedEntity<TC, TE, TS>.ICommandContext<TC>, IPersist<TE>> func)
             where TC2 : IReplyType<TR>, TC
             where TR : class
             => new BehaviorBuilder<TC, TE, TS>(
@@ -87,6 +94,23 @@ namespace wyvern.api.@internal.behavior
                 )
             );
 
+        public IBehaviorBuilder<TC, TE, TS> SetIngestionCommandHandler<TC2, TR2>(
+            Func<TC2, ShardedEntity<TC, TE, TS>.IIngestionCommandContext<TC>, IPersist<TE>> func)
+            where TC2 : IReplyType<TR2>, TC
+            where TR2 : class
+            => new BehaviorBuilder<TC, TE, TS>(
+                State,
+                EventHandlers,
+                CommandHandlers.Add(
+                    typeof(TC2),
+                    (ctx, e) =>
+                    {
+                        var d = func.Invoke((TC2)ctx, e as ShardedEntity<TC, TE, TS>.IIngestionCommandContext<TC>);
+                        return d;
+                    }
+                )
+            );
+
         /// <summary>
         ///     Set the event handler for the given type
         /// </summary>
@@ -94,8 +118,8 @@ namespace wyvern.api.@internal.behavior
         /// <typeparam name="TE2"></typeparam>
         /// <typeparam name="TS2"></typeparam>
         /// <returns></returns>
-        public IBehaviorBuilder<TC, TE, TS> SetEventHandler<TE2, TS2>
-            (Func<TE2, TS2> func)
+        public IBehaviorBuilder<TC, TE, TS> SetEventHandler<TE2, TS2>(
+            Func<TE2, TS2> func)
             where TE2 : TE
             where TS2 : TS
             => new BehaviorBuilder<TC, TE, TS>(
