@@ -1,40 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="theme-color" content="#000000">
-    <!--
-      manifest.json provides metadata used when your web app is added to the
-      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
-    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<html>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+  <script src="http://unpkg.com/force-graph"></script>
+  <style type="text/css">
+    .graph-tooltip {
+      position: absolute;
+      transform: translate(-50%, 25px);
+      font-family: Sans-serif;
+      font-size: 16px;
+      padding: 4px;
+      border-radius: 3px;
+      color: #eee;
+      background: rgba(0, 0, 0, 0.65);
+      visibility: hidden;
+      /* by default */
+    }
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+    .grabbable {
+      cursor: move;
+      cursor: grab;
+      cursor: -moz-grab;
+      cursor: -webkit-grab;
+    }
+
+    .grabbable:active {
+      cursor: grabbing;
+      cursor: -moz-grabbing;
+      cursor: -webkit-grabbing;
+    }
+  </style>
+  <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+  <div id="graph" style="">
+    <div style="position: relative;"><canvas width="3076" height="1898" style="width: 1538px; height: 949px;"
+        class=""></canvas>
+      <div class="graph-tooltip" style="top: 203px; left: 792px; visibility: hidden;"></div>
+    </div>
+  </div>
+
+  <script>
+    const initial_path = "akka://ClusterSystem";
+    const initData = { nodes: [], links: [] };
+
+    const elem = document.getElementById("graph");
+
+    const Graph = ForceGraph()(elem)
+      .onNodeHover(node => elem.style.cursor = node ? 'pointer' : null)
+      .onNodeClick(removeNode)
+      .nodeLabel('name')
+      .linkDirectionalParticles(2)
+      .graphData(initData);
+
+    function addNode(node, name, linkz) {
+      const { nodes, links } = Graph.graphData();
+      Graph.graphData({
+        nodes: [...nodes, { id: node, name: name }],
+        links: [...links, ...linkz]
+      });
+    };
+
+    function removeNode(node) {
+      // let { nodes, links } = Graph.graphData();
+      // links = links.filter(l => l.source !== node && l.target !== node); // Remove links attached to node
+      // nodes.splice(node.id, 1); // Remove node
+      // nodes.forEach((n, idx) => { n.id = idx; }); // Reset node ids to array index
+      // Graph.graphData({ nodes, links });
+    }
+
+    const crawl = (path, name) => {
+      fetch("http://localhost:5000/api/visualizer/list?path=" + path + "/")
+        .then(res => res.json())
+        .then(json => {
+          addNode(
+            path,
+            name,
+            json.Children.map(
+              (child) => ({ source: path, target: child.Path })
+            )
+          )
+          json.Children.forEach(x => crawl(x.Path, x.Name));
+        });
+    };
+    crawl(initial_path, '');
+
+  </script>
+</body>
+
 </html>

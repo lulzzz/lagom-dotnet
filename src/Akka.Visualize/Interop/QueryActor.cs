@@ -55,7 +55,7 @@ namespace Akka.Visualize.Interop
                 Become(WaitingForIdentifications);
 
                 // max wait is 1s
-                Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 1), Self, new Messages.StopIdentify(), Self);
+                Context.System.Scheduler.ScheduleTellOnce(TimeSpan.FromMilliseconds(60), Self, new Messages.StopIdentify(), Self);
             });
         }
 
