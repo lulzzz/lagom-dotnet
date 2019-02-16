@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace wyvern.api.ioc
 {
+    /// <summary>
+    /// Part of the swagger document generation pipeline which deals with description groups
+    /// </summary>
     internal class ReactiveServicesApiDescriptionGroupProvider : IApiDescriptionGroupCollectionProvider
     {
         public ApiDescriptionGroupCollection ApiDescriptionGroups { get; } =

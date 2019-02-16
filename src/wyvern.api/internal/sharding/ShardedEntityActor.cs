@@ -10,6 +10,7 @@ using Akka.Dispatch.SysMsg;
 using Akka.Persistence;
 using Akka.Persistence.Journal;
 using Akka.Streams.Util;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.operations;
 using wyvern.api.ioc;
 using wyvern.entity.command;

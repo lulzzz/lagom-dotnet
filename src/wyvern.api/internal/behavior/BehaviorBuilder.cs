@@ -8,7 +8,8 @@ using wyvern.entity.state;
 namespace wyvern.api.@internal.behavior
 {
     /// <summary>
-    ///     Implementation of the behavior builder
+    ///     Surface of the of the behavior builder which helps build an
+    /// immutable behavior for an entity command, event, state mapping.
     /// </summary>
     /// <typeparam name="TC"></typeparam>
     /// <typeparam name="TE"></typeparam>

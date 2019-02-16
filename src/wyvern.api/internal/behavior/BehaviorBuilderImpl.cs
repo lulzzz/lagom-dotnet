@@ -46,12 +46,6 @@ namespace wyvern.api.@internal.behavior
         }
 
         /// <summary>
-        /// DbConnectionFactory
-        /// </summary>
-        /// <value></value>
-        protected Func<SqlConnection> IngestionConnectionFactory { get; }
-
-        /// <summary>
         /// Entity state
         /// </summary>
         /// <value></value>
@@ -94,6 +88,15 @@ namespace wyvern.api.@internal.behavior
                 )
             );
 
+        /// <summary>
+        /// Command handler for the _optional_ ability to ingest from a data source prior to
+        /// entity state initialization.  Helpful if leveraging an existing normalized data
+        /// source
+        /// </summary>
+        /// <typeparam name="TC2"></typeparam>
+        /// <typeparam name="TR2"></typeparam>
+        /// <param name="func"></param>
+        /// <returns></returns>
         public IBehaviorBuilder<TC, TE, TS> SetIngestionCommandHandler<TC2, TR2>(
             Func<TC2, ShardedEntity<TC, TE, TS>.IIngestionCommandContext<TC>, IPersist<TE>> func)
             where TC2 : IReplyType<TR2>, TC

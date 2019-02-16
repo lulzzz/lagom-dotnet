@@ -11,7 +11,10 @@ using System.Text.RegularExpressions;
 
 namespace wyvern.api.ioc
 {
-
+    /// <summary>
+    /// Main component responsible for generating swagger documents from
+    /// the service descriptors.
+    /// </summary>
     public class ReactiveServicesApiDescriptionsDocumentFilter : IDocumentFilter
     {
         IServiceProvider _provider;
@@ -44,7 +47,6 @@ namespace wyvern.api.ioc
                             .ToList();
 
                     var mref = call.MethodRef;
-                    var mrefParams = mref.GetParameters().Select(x => x.Name);
                     var reqType = mref.ReturnType.GenericTypeArguments[0];
 
                     if (reqType != typeof(NotUsed))
@@ -94,6 +96,10 @@ namespace wyvern.api.ioc
                         );
                     }
 
+                    /*
+                     * Register each method against the existing path dictionary which also
+                     * preforms checking for duplicate paths
+                     */
                     if (restCall.Method == Method.DELETE)
                     {
                         if (path.Delete != null) throw new InvalidOperationException("Duplicate path");

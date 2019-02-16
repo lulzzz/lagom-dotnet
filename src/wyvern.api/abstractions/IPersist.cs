@@ -1,6 +1,6 @@
 using wyvern.entity.@event;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     ///     Persistence interface

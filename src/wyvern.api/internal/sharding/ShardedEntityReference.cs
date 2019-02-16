@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.command;
 
 namespace wyvern.api.@internal.sharding

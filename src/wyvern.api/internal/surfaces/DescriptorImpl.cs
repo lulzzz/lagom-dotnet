@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using wyvern.api.abstractions;
+using wyvern.utils;
 
 namespace wyvern.api.@internal.surfaces
 {

@@ -38,7 +38,6 @@ namespace wyvern.api.@internal.command
         ///     Reply to the sender with an 'invalid command exception'
         /// </summary>
         /// <param name="message"></param>
-        internal void InvalidCommand(string message) =>
-            CommandFailed(new InvalidCommandException(message));
+        internal void InvalidCommand(string message) => CommandFailed(new InvalidCommandException(message));
     }
 }

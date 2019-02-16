@@ -8,7 +8,7 @@ using wyvern.entity.@event;
 using wyvern.entity.@event.aggregate;
 using wyvern.entity.state;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     public interface IShardedEntityRegistry
     {

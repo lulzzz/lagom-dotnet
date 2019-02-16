@@ -1,10 +1,12 @@
 ﻿using System;
-
 using wyvern.entity.@event.aggregate;
 
-public abstract class ReadSide
+namespace wyvern.api.@internal.readside
 {
-    public abstract void Register<TE>(
-        Func<ReadSideProcessor<TE>> processorFactory
-    ) where TE : AggregateEvent<TE>;
+    public abstract class ReadSide
+    {
+        public abstract void Register<TE>(
+            Func<ReadSideProcessor<TE>> processorFactory
+        ) where TE : AggregateEvent<TE>;
+    }
 }

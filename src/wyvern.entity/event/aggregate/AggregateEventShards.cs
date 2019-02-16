@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace wyvern.entity.@event.aggregate
 {
+    /// <summary>
+    /// Provides a method for sharding aggregate event tags based on the desired number of
+    /// shards
+    /// </summary>
     public sealed class AggregateEventShards : AggregateEventTagger, IAggregateEventShards
     {
         public int NumShards { get; }

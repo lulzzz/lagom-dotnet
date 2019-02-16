@@ -5,20 +5,23 @@ using Akka.Persistence.Query;
 using Akka.Streams.Dsl;
 using wyvern.entity.@event.aggregate;
 
-public class ReadSideHandler<TE> where TE : AggregateEvent<TE>
+namespace wyvern.api.@internal.readside
 {
-    public virtual Task<Done> GlobalPrepare()
+    public class ReadSideHandler<TE> where TE : AggregateEvent<TE>
     {
-        return Task.FromResult(Done.Instance);
-    }
+        public virtual Task<Done> GlobalPrepare()
+        {
+            return Task.FromResult(Done.Instance);
+        }
 
-    public virtual Task<Offset> Prepare(AggregateEventTag tag)
-    {
-        return Task.FromResult(Offset.NoOffset());
-    }
+        public virtual Task<Offset> Prepare(AggregateEventTag tag)
+        {
+            return Task.FromResult(Offset.NoOffset());
+        }
 
-    public virtual Flow<(TE, Offset), Done, NotUsed> Handle()
-    {
-        throw new NotImplementedException();
+        public virtual Flow<(TE, Offset), Done, NotUsed> Handle()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

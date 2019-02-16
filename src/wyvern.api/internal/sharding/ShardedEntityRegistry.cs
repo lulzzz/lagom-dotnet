@@ -10,6 +10,7 @@ using Akka.Persistence.Query.Sql;
 using Akka.Persistence.SqlServer;
 using Akka.Streams.Dsl;
 using Akka.Streams.Util;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.command;
 using wyvern.api.ioc;
 using wyvern.entity.command;

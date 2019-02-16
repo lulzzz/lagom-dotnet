@@ -1,6 +1,6 @@
 using wyvern.api.@internal.surfaces;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     public interface ITopicCall
     {

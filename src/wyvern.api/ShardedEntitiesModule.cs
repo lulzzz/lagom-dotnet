@@ -3,6 +3,7 @@ using Akka.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.surfaces;
 using wyvern.api.ioc;
 
