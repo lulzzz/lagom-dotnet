@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     ///     Untyped ICall interface

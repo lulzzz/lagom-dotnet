@@ -1,6 +1,6 @@
 using System;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     ///     Readonly command context interface

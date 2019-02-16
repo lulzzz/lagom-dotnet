@@ -1,6 +1,6 @@
 using System;
 
-namespace wyvern
+namespace wyvern.utils
 {
     [AttributeUsage(AttributeTargets.Class|AttributeTargets.Interface|AttributeTargets.Property)]
     public class ImmutableAttribute : Attribute

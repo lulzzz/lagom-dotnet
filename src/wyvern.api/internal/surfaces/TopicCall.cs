@@ -1,3 +1,5 @@
+using wyvern.api.abstractions;
+
 namespace wyvern.api.@internal.surfaces
 {
     internal sealed class TopicCall<M> : ITopicCall<M>

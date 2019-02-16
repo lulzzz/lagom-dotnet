@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Akka;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.Swagger;
 using wyvern.api.@internal.surfaces;
 using System.Text.RegularExpressions;
+using wyvern.api.abstractions;
 
 namespace wyvern.api.ioc
 {

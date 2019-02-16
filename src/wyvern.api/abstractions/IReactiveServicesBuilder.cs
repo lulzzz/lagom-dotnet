@@ -3,7 +3,7 @@ using wyvern.entity.command;
 using wyvern.entity.@event;
 using wyvern.entity.state;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     public interface IReactiveServiceBuilder
     {

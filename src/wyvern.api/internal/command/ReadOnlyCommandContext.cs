@@ -1,5 +1,6 @@
 using System;
 using Akka.Actor;
+using wyvern.api.abstractions;
 using wyvern.api.exceptions;
 
 namespace wyvern.api.@internal.command

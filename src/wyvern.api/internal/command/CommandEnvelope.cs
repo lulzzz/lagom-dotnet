@@ -1,3 +1,5 @@
+using wyvern.utils;
+
 namespace wyvern.api.@internal.command
 {
     /// <summary>

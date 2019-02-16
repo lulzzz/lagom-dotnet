@@ -1,4 +1,4 @@
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     public interface ICallId
     {

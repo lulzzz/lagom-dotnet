@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Data.SqlClient;
 using Akka.Actor;
 using Akka.Streams.Util;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.behavior;
 using wyvern.api.@internal.command;
 using wyvern.api.@internal.operations;

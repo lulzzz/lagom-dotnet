@@ -4,6 +4,7 @@ using System.IO;
 using Akka.Actor;
 using Akka.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using wyvern.api.abstractions;
 
 namespace wyvern.api.ioc
 {

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
+using wyvern.utils;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     ///     Descriptor interface

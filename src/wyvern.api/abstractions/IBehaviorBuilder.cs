@@ -1,11 +1,11 @@
 using System;
-using System.Data.SqlClient;
 using wyvern.api.ioc;
 using wyvern.entity.command;
 using wyvern.entity.@event;
 using wyvern.entity.state;
+using wyvern.utils;
 
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     /// BehaviorBuilder interface

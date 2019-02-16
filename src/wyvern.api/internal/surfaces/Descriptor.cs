@@ -1,3 +1,5 @@
+using wyvern.api.abstractions;
+
 namespace wyvern.api.@internal.surfaces
 {
     internal static class Descriptor

@@ -1,4 +1,4 @@
-namespace wyvern.api
+namespace wyvern.api.abstractions
 {
     /// <summary>
     ///     Typed reply type interface

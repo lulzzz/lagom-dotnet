@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
+using wyvern.api.abstractions;
 using wyvern.api.@internal.surfaces;
 
 namespace wyvern.api.ioc
