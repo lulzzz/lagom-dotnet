@@ -30,7 +30,7 @@ namespace wyvern.utils
                 {
                     var tmp = line.TrimStart(' ');
                     if (tmp.Length > 0 && tmp.StartsWith(marginDecorator))
-                        sb.AppendLine(tmp);
+                        sb.AppendLine(tmp.TrimStart('|'));
                     else
                         sb.Append(line);
                 }

@@ -153,7 +153,7 @@ namespace wyvern.api.@internal.sharding
             if (!CommandHandlers.TryGetValue(commandType, out var commandHandler))
             {
                 Log.Warning($"Unknown command type received: {commandType}");
-                return true;
+                return false;
             }
 
             // TODO: possible to have ambiguous match, ignore this for a bit..
@@ -277,7 +277,14 @@ namespace wyvern.api.@internal.sharding
                     HandleCommand(typeof(TC), message);
 
                 if (commandType.IsSubclassOf(typeof(TC)))
-                    HandleCommand(commandType, message);
+                {
+                    var handled = HandleCommand(commandType, message);
+                    if (!handled)
+                    {
+                        var commandContext = newContext(Sender, SqlConnectionFactory);
+                        commandContext.InvalidCommand("Invalid command");
+                    }
+                }
             }
             // Successful snapshot retention
             else if (commandType == typeof(SaveSnapshotSuccess))

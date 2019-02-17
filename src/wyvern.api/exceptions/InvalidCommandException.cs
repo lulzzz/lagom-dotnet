@@ -2,18 +2,28 @@ using System;
 
 namespace wyvern.api.exceptions
 {
-    /// <summary>
-    ///     Exception denoting an invalid command
-    /// </summary>
-    public class InvalidCommandException : Exception
+    public abstract class StatusCodeException : Exception
     {
-        /// <summary>
-        ///     Constructor
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        internal InvalidCommandException(string message) : base(message)
-        {
-        }
+        public StatusCodeException(string message) : base(message) { }
+    }
+
+    public sealed class ConflictException : StatusCodeException
+    {
+        public ConflictException(string message) : base(message) { }
+    }
+
+    public sealed class NotFoundException : StatusCodeException
+    {
+        public NotFoundException(string message) : base(message) { }
+    }
+
+    public sealed class BadRequestException : StatusCodeException
+    {
+        public BadRequestException(string message) : base(message) { }
+    }
+
+    public sealed class UnauthorizedException : StatusCodeException
+    {
+        public UnauthorizedException(string message) : base(message) { }
     }
 }

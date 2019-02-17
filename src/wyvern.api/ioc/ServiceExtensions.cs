@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 using wyvern.api.abstractions;
+using wyvern.api.exceptions;
 using wyvern.api.@internal.surfaces;
 
 namespace wyvern.api.ioc
@@ -262,6 +263,7 @@ namespace wyvern.api.ioc
                     }
                     catch (Exception ex)
                     {
+                        if (ex is StatusCodeException) throw;
                         // TODO: Logger extensions
                         res.StatusCode = 500;
                         var result = task.Result as Exception;
