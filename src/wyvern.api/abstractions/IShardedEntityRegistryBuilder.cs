@@ -10,19 +10,19 @@ namespace wyvern.api.abstractions
 {
     public interface IShardedEntityRegistryBuilder
     {
-        IShardedEntityRegistryBuilder WithExtension<T, TI>()
-            where T : class, IExtension
-            where TI : IExtensionId;
+        IShardedEntityRegistryBuilder WithExtension<TExtension, TImplementation>()
+            where TExtension : class, IExtension
+            where TImplementation : IExtensionId;
         
-        IShardedEntityRegistryBuilder WithReadSide<TE, TP>()
-            where TE : AggregateEvent<TE>
-            where TP : ReadSideProcessor<TE>, new();
+        IShardedEntityRegistryBuilder WithReadSide<TEvent, TProcessor>()
+            where TEvent : AggregateEvent<TEvent>
+            where TProcessor : ReadSideProcessor<TEvent>, new();
         
-        IShardedEntityRegistryBuilder WithShardedEntity<T, C, E, S>()
-            where T : ShardedEntity<C, E, S>, new()
-            where C : AbstractCommand
-            where E : AbstractEvent
-            where S : AbstractState;
+        IShardedEntityRegistryBuilder WithShardedEntity<T, TCommand, TEvent, TState>()
+            where T : ShardedEntity<TCommand, TEvent, TState>, new()
+            where TCommand : AbstractCommand
+            where TEvent : AbstractEvent
+            where TState : AbstractState;
 
         IShardedEntityRegistry Build();
     }

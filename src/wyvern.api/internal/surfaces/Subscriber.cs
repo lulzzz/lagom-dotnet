@@ -1,6 +1,6 @@
 namespace wyvern.api.@internal.surfaces
 {
-    public interface Subscriber<P>
+    public interface Subscriber<TP>
     {
     }
 }

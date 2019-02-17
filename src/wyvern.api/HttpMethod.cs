@@ -8,6 +8,7 @@ namespace wyvern.api
     [Immutable]
     public class Method
     {
+        // ReSharper disable InconsistentNaming
         public static readonly Method GET = new Method("GET");
         public static readonly Method POST = new Method("POST");
         public static readonly Method PUT = new Method("PUT");
@@ -15,6 +16,7 @@ namespace wyvern.api
         public static readonly Method HEAD = new Method("HEAD");
         public static readonly Method OPTIONS = new Method("OPTIONS");
         public static readonly Method PATCH = new Method("PATCH");
+        // ReSharper restore InconsistentNaming
 
         private string Name { get; }
 

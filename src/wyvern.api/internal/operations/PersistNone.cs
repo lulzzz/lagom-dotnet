@@ -5,12 +5,12 @@ using wyvern.utils;
 namespace wyvern.api.@internal.operations
 {
     /// <summary>
-    ///     Read-only event marker
+    /// Read-only event marker
     /// </summary>
-    /// <typeparam name="E"></typeparam>
+    /// <typeparam name="TEvent"></typeparam>
     [Immutable]
-    internal sealed class PersistNone<E> : IPersist<E>
-        where E : AbstractEvent
+    internal sealed class PersistNone<TEvent> : IPersist<TEvent>
+        where TEvent : AbstractEvent
     {
     }
 }
