@@ -4,8 +4,6 @@ WORKDIR /app
 COPY ./entrypoint.sh ./migrate.sh ./
 RUN chmod +x ./*.sh
 
-COPY ./up.sql ./
-
 ENV PATH="/opt/mssql-tools/bin:${PATH}"
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
