@@ -12,7 +12,6 @@ namespace wyvern.api.abstractions
 {
     public interface IShardedEntityRegistry
     {
-        // TODO: event type embedded within typed registry?
         Source<(TE, Offset), NotUsed> EventStream<TE>(AggregateEventTag instance, Offset fromOffset)
             where TE : AggregateEvent<TE>;
 

@@ -14,7 +14,6 @@ using wyvern.utils;
 
 namespace wyvern.api.@internal.readside
 {
-// TODO: What's this??
     public class Provider<T> { }
 
     internal class ReadSideImpl : ReadSide
@@ -26,7 +25,7 @@ namespace wyvern.api.@internal.readside
         protected Option<string> Name { get; }
 
         public ReadSideImpl(ActorSystem system, ReadSideConfig config, IShardedEntityRegistry registry)
-            // TODO: (implicit ec: ExecutionContext, mat: Materializer)
+        // TODO: (implicit ec: ExecutionContext, mat: Materializer)
         {
             Config = config;
             Registry = registry;
@@ -35,7 +34,6 @@ namespace wyvern.api.@internal.readside
 
         public override void Register<TE>(Func<ReadSideProcessor<TE>> processorFactory)
         {
-
             // TODO: Resolve vs straight inject
             if (!Config.Role.ForAll(Cluster.Get(System).SelfRoles.Contains))
             {

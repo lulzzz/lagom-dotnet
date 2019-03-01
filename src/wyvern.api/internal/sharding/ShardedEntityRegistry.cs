@@ -195,44 +195,20 @@ namespace wyvern.api.@internal.sharding
             return ActorSystem.Terminate();
         }
 
-
-        /*
-
-        def dslOffsetToOffset(dslOffset: LagomJavaDslOffset): Offset = dslOffset match {
-            case uuid: LagomJavaDslOffset.TimeBasedUUID => TimeBasedUUID(uuid.value())
-            case seq: LagomJavaDslOffset.Sequence       => Sequence(seq.value())
-            case LagomJavaDslOffset.NONE                => NoOffset
-            case _                                      => throw new IllegalArgumentException("Unsuppoerted offset type " + dslOffset.getClass.getName)
-        }
-
-        */
-
         public Source<(E, Offset), NotUsed> EventStream<E>(AggregateEventTag aggregateTag, Offset fromOffset)
             where E : AggregateEvent<E>
         {
-            //var readJournal = PersistenceQuery.Get(ActorSystem).ReadJournalFor<SqlReadJournal>($"akka.persistence.query");
-
             if (!EventsByTagQuery.HasValue)
                 throw new InvalidOperationException("No support for streaming events by tag");
 
             var queries = EventsByTagQuery.Value;
             var tag = aggregateTag.Tag;
 
-            // TODO: Check this
             Offset MapStartingOffset(Offset o) => o;
-
-            // TODO: Offset adapter stuff.
-            //OffsetAdapter.dslOffsetToOffset(storedOffset)
-
             var startingOffset = MapStartingOffset(fromOffset);
 
             return queries.EventsByTag(tag, startingOffset)
-                .Select(x =>
-                {
-                    ActorSystem.Log.Info($"{x.Event}, {x.Offset}");
-                    return (x.Event as E, x.Offset);
-                });
-
+                .Select(env => (env.Event as E, env.Offset));
         }
 
 
@@ -255,7 +231,6 @@ namespace wyvern.api.@internal.sharding
             var PassivateAfterIdleTimeout = ActorSystem.Settings.Config.GetConfig("wyvern.persistence")
                 .GetTimeSpan("passivate-after-idle-timeout", TimeSpan.FromSeconds(100));
 
-            // TODO: Plugin Ids
             const string snapshotPluginId = "";
             const string journalPluginId = "";
 
