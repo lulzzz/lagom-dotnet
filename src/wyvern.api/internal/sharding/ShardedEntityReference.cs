@@ -50,7 +50,11 @@ namespace wyvern.api.@internal.sharding
 
             try
             {
-                return (TR)task.Result;
+                if (task.Result is TR)
+                    return (TR)task.Result;
+                if (task.Result as Exception != null)
+                    throw (Exception)task.Result;
+                throw new InvalidOperationException("Invalid return type on ask.");
             }
             catch (Exception ex)
             {
