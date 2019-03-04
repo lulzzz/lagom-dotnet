@@ -37,13 +37,19 @@ namespace wyvern.api.ioc
                     var restCall = call.CallId as RestCallId;
 
                     var parameters = Regex.Matches(restCall.PathPattern, "\\{([^\\}]*)\\}")
-                            .Select(match => match.Value.Split(":"))
-                            .Select(x => new NonBodyParameter()
+                            .Select(match => match.Value.Substring(1, match.Value.Length - 2))
+                            .Select(x =>
                             {
-                                Name = x[0].Substring(1, x[0].Length - 2),
-                                In = "path"
-                                // TODO: Type from split, min / max, required
-                            } as IParameter)
+                                var parts = x.Split(":");
+                                var type = parts.Length > 1 ? parts[1] : "string";
+                                return new NonBodyParameter()
+                                {
+                                    Name = parts[0],
+                                    In = "path",
+                                    Required = true,
+                                    Type = type
+                                } as IParameter;
+                            })
                             .ToList();
 
                     var mref = call.MethodRef;
@@ -79,7 +85,12 @@ namespace wyvern.api.ioc
                         },
                         Responses = new Dictionary<string, Response>()
                         {
-                            { "200", new Response { Schema = schemaRegistry.GetOrRegister(resType) } }
+                            {
+                                "200", new Response {
+                                    Schema = schemaRegistry.GetOrRegister(resType),
+                                    Description = $"Returns {resType.Name}"
+                                }
+                            }
                         },
                         Tags = new[] { service.Descriptor.Name },
                         Parameters = parameters
