@@ -8,6 +8,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using wyvern.api.@internal.surfaces;
 using System.Text.RegularExpressions;
 using wyvern.api.abstractions;
+using System.Text;
 
 namespace wyvern.api.ioc
 {
@@ -42,12 +43,18 @@ namespace wyvern.api.ioc
                             {
                                 var parts = x.Split(":");
                                 var type = parts.Length > 1 ? parts[1] : "string";
+                                if (type == "int")
+                                {
+                                    type = "integer";
+                                    // TODO: check min/max values for 64bit
+                                }
                                 return new NonBodyParameter()
                                 {
                                     Name = parts[0],
                                     In = "path",
                                     Required = true,
-                                    Type = type
+                                    Type = type,
+                                    Format = type == "integer" ? "Int32" : null
                                 } as IParameter;
                             })
                             .ToList();
@@ -96,13 +103,42 @@ namespace wyvern.api.ioc
                         Parameters = parameters
                     };
 
+                    Func<String, String> removeTypes = (string str) =>
+                        {
+                            var sb = new StringBuilder();
+                            bool capturing = true;
+                            bool thinking = false;
+                            foreach (var c in str)
+                            {
+                                if (thinking)
+                                {
+                                    if (c == '}')
+                                    {
+                                        thinking = false;
+                                        capturing = true;
+                                    }
+                                    else if (c == ':')
+                                    {
+                                        capturing = false;
+                                        continue;
+                                    }
+                                }
+                                if (c == '{')
+                                    thinking = true;
+                                if (capturing)
+                                    sb.Append(c);
+                            }
+                            return sb.ToString();
+                        };
 
-                    var exists = swaggerDoc.Paths.ContainsKey(restCall.PathPattern);
-                    var path = exists ? swaggerDoc.Paths[restCall.PathPattern] : new PathItem();
+                    var newPath = removeTypes(restCall.PathPattern);
+
+                    var exists = swaggerDoc.Paths.ContainsKey(newPath);
+                    var path = exists ? swaggerDoc.Paths[newPath] : new PathItem();
                     if (!exists)
                     {
                         swaggerDoc.Paths.Add(
-                            restCall.PathPattern,
+                            newPath,
                             path
                         );
                     }
