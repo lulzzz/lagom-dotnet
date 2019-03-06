@@ -10,6 +10,6 @@ jobs:
       - run: dotnet build
       - run: dotnet pack src/wyvern.api/wyvern.api.csproj
       - run: |
-        dotnet nuget push src/wyvern.api/bin/Debug/wyvern.api.1.0.0.nupkg \ 
-          --api-key $nuget_api_key \
-          --source https://api.nuget.org/v3/index.json
+          dotnet nuget push src/wyvern.api/bin/Debug/wyvern.api.1.0.0.nupkg \ 
+            --api-key $nuget_api_key \
+            --source https://api.nuget.org/v3/index.json
