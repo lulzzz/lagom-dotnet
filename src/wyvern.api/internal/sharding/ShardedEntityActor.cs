@@ -272,18 +272,11 @@ namespace wyvern.api.@internal.sharding
             // Normal command handler
             if (message is TC)
             {
-                // Apply base command to initiate migration
-                if (EventCount == 0) // TODO: This should be a switchable feature
-                    HandleCommand(typeof(TC), message);
-
-                if (commandType.IsSubclassOf(typeof(TC)))
+                var handled = HandleCommand(commandType, message);
+                if (!handled)
                 {
-                    var handled = HandleCommand(commandType, message);
-                    if (!handled)
-                    {
-                        var commandContext = newContext(Sender, SqlConnectionFactory);
-                        commandContext.InvalidCommand("Invalid command");
-                    }
+                    var commandContext = newContext(Sender, SqlConnectionFactory);
+                    commandContext.InvalidCommand("Invalid command");
                 }
             }
             // Successful snapshot retention
