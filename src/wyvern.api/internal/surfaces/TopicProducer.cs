@@ -16,7 +16,7 @@ namespace wyvern.api.@internal.surfaces
         public static Topic<TM> SingleStreamWithOffset<TM>(Func<Offset, Source<(TM, Offset), NotUsed>> eventStream)
         {
             return TaggedStreamWithOffset<TM, SingletonEvent>(SingletonTag)
-            ((tags, offset) => eventStream.Invoke(offset)
+                ((tags, offset) => eventStream.Invoke(offset)
             );
         }
 
