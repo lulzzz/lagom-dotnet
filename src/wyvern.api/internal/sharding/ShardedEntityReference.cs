@@ -54,7 +54,7 @@ namespace wyvern.api.@internal.sharding
                     return (TR)task.Result;
                 if (task.Result as Exception != null)
                     throw (Exception)task.Result;
-                throw new InvalidOperationException("Invalid return type on ask.");
+                throw new InvalidOperationException($"Invalid return type  on ask.  Expected [{typeof(TR)}], found [{task.Result?.GetType()}]");
             }
             catch (Exception ex)
             {
