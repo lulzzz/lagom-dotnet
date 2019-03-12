@@ -89,7 +89,7 @@ namespace wyvern.api.ioc
             void ServiceIterator(Action<Service, Type> x)
             {
                 foreach (var (serviceType, _) in reactiveServices)
-                    x((Service) services.GetService(serviceType), serviceType);
+                    x((Service)services.GetService(serviceType), serviceType);
             }
 
 
@@ -180,8 +180,8 @@ namespace wyvern.api.ioc
             var topicCall = (ITopicCall)t;
             if (!(topicCall.TopicHolder is MethodTopicHolder))
                 throw new NotImplementedException();
-            var holder = (MethodTopicHolder)topicCall.TopicHolder;
 
+            var holder = (MethodTopicHolder)topicCall.TopicHolder;
             var producer = holder.Method.Invoke(s, null);
             var messageType = producer.GetType().GetGenericArguments()[0];
             var producerType = typeof(ITaggedOffsetTopicProducer<>);
