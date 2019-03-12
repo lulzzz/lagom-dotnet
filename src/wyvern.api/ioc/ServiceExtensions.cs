@@ -5,6 +5,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Actor;
+using Akka.Dispatch;
+using Akka.Persistence.Query;
+using Akka.Streams;
+using Akka.Streams.Dsl;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -28,7 +33,8 @@ namespace wyvern.api.ioc
             None,
             WithApi,
             WithSwagger,
-            WithVisualizer
+            WithVisualizer,
+            WithTopics
         }
 
         static ReactiveServicesOption Options;
@@ -80,22 +86,25 @@ namespace wyvern.api.ioc
             var services = app.ApplicationServices;
             var reactiveServices = services.GetService<IReactiveServices>();
 
-            Action<Action<Service, Type>> serviceIterator = (x) =>
+            Action<Action<Service, Type>> serviceIterator = x =>
             {
                 foreach (var (serviceType, _) in reactiveServices)
-                {
-                    var instance = services.GetService(serviceType);
-                    var service = (Service)instance;
-                    x(service, serviceType);
-                }
+                    x((Service)services.GetService(serviceType), serviceType);
             };
 
             // Register any service bound topics
-            serviceIterator((service, serviceType) =>
+            if (Options.HasFlag(ReactiveServicesOption.WithTopics))
             {
-                foreach (var topic in service.Descriptor.Topics)
-                    RegisterTopic(topic);
-            });
+                serviceIterator((service, serviceType) =>
+                {
+                    foreach (var topic in service.Descriptor.Topics)
+                        RegisterTopic(
+                            topic,
+                            service,
+                            app.ApplicationServices.GetService<ActorSystem>()
+                        );
+                });
+            }
 
             // Build the API components
             if (Options.HasFlag(ReactiveServicesOption.WithApi))
@@ -165,38 +174,46 @@ namespace wyvern.api.ioc
             });
         }
 
-        private static void RegisterTopic(object t)
+        private static void RegisterTopic(object t, Service s, ActorSystem sys)
         {
-            MethodInfo method;
             var topicCall = (ITopicCall)t;
-            switch (topicCall.TopicHolder)
-            {
-                case MethodTopicHolder methodRef:
-                    switch (methodRef.Method)
-                    {
-                        case MethodInfo preResolved:
-                            method = preResolved;
-                            break;
+            if (!(topicCall.TopicHolder is MethodTopicHolder))
+                throw new NotImplementedException();
+            var holder = topicCall.TopicHolder as MethodTopicHolder;
 
-                        default:
-                            throw new NotImplementedException();
-                    }
+            var topicId = topicCall.TopicId;
+            var producer = holder.Create<object>(s);
+            if (!(producer is TaggedOffsetTopicProducer<object>))
+                throw new NotImplementedException();
 
-                    break;
-                default:
-                    throw new Exception($"Unknown {t.GetType().Name} type");
-            }
+            var p = producer as TaggedOffsetTopicProducer<object>;
+            // TODO: Use offset storage
+            p.Tags.Select(
+                tag =>
+                {
+                    return p.ReadSideStream
+                        .Invoke(tag, Offset.NoOffset())
+                        .ViaMaterialized(KillSwitches.Single<(object, Offset)>(), Keep.Right)
+                        // .VIA()
+                        .ToMaterialized(Sink.Ignore<(object, Offset)>(), Keep.Both)
+                        .Run(ActorMaterializer.Create(sys)); /* materializer..... ActorMaterializer.Create(); */
+                }
+            ).ToArray();
 
-            var methodRefType = method.ReturnType;
-            var requestType = methodRefType.GenericTypeArguments[0];
 
-            var holder = new MethodTopicHolder(method);
 
-            topicCall.GetType()
-                .GetMethod("WithTopicHolder")
-                .Invoke(topicCall, new object[] { holder });
 
-            /* Serializers */
+            // Producer.startTaggedOffsetProducer(
+            //     actorSystem,
+            //     tags.map(_.tag),
+            //     kafkaConfig,
+            //     locateService,
+            //     topicId.value(),
+            //     eventStreamFactory,
+            //     partitionKeyStrategy,
+            //     new JavadslKafkaSerializer(topicCall.messageSerializer().serializerForRequest()),
+            //     offsetStore
+            // );
 
         }
 
