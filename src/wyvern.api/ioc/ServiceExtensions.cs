@@ -86,16 +86,17 @@ namespace wyvern.api.ioc
             var services = app.ApplicationServices;
             var reactiveServices = services.GetService<IReactiveServices>();
 
-            Action<Action<Service, Type>> serviceIterator = x =>
+            void ServiceIterator(Action<Service, Type> x)
             {
                 foreach (var (serviceType, _) in reactiveServices)
-                    x((Service)services.GetService(serviceType), serviceType);
-            };
+                    x((Service) services.GetService(serviceType), serviceType);
+            }
+
 
             // Register any service bound topics
             if (Options.HasFlag(ReactiveServicesOption.WithTopics))
             {
-                serviceIterator((service, serviceType) =>
+                ServiceIterator((service, serviceType) =>
                 {
                     foreach (var topic in service.Descriptor.Topics)
                         RegisterTopic(
@@ -112,7 +113,7 @@ namespace wyvern.api.ioc
                 var router = new RouteBuilder(app);
 
                 // Register all calls for the services
-                serviceIterator((service, serviceType) =>
+                ServiceIterator((service, serviceType) =>
                 {
                     foreach (var call in service.Descriptor.Calls)
                         RegisterCall(router, service, serviceType, call);
@@ -179,42 +180,13 @@ namespace wyvern.api.ioc
             var topicCall = (ITopicCall)t;
             if (!(topicCall.TopicHolder is MethodTopicHolder))
                 throw new NotImplementedException();
-            var holder = topicCall.TopicHolder as MethodTopicHolder;
+            var holder = (MethodTopicHolder)topicCall.TopicHolder;
 
-            var topicId = topicCall.TopicId;
-            var producer = holder.Create<object>(s);
-            if (!(producer is TaggedOffsetTopicProducer<object>))
-                throw new NotImplementedException();
-
-            var p = producer as TaggedOffsetTopicProducer<object>;
-            // TODO: Use offset storage
-            p.Tags.Select(
-                tag =>
-                {
-                    return p.ReadSideStream
-                        .Invoke(tag, Offset.NoOffset())
-                        .ViaMaterialized(KillSwitches.Single<(object, Offset)>(), Keep.Right)
-                        // .VIA()
-                        .ToMaterialized(Sink.Ignore<(object, Offset)>(), Keep.Both)
-                        .Run(ActorMaterializer.Create(sys)); /* materializer..... ActorMaterializer.Create(); */
-                }
-            ).ToArray();
-
-
-
-
-            // Producer.startTaggedOffsetProducer(
-            //     actorSystem,
-            //     tags.map(_.tag),
-            //     kafkaConfig,
-            //     locateService,
-            //     topicId.value(),
-            //     eventStreamFactory,
-            //     partitionKeyStrategy,
-            //     new JavadslKafkaSerializer(topicCall.messageSerializer().serializerForRequest()),
-            //     offsetStore
-            // );
-
+            var producer = holder.Method.Invoke(s, null);
+            var messageType = producer.GetType().GetGenericArguments()[0];
+            var producerType = typeof(ITaggedOffsetTopicProducer<>);
+            var producerGeneric = producerType.MakeGenericType(messageType);
+            producerGeneric.GetMethod("Init").Invoke(producer, new object[] { sys });
         }
 
         /// <summary>
@@ -270,8 +242,10 @@ namespace wyvern.api.ioc
                         dynamic task;
                         if (requestType == typeof(NotUsed))
                         {
-                            task = cref.Invoke(mres, new object[] { NotUsed.Instance
-    });
+                            task = cref.Invoke(mres, new object[]
+                            {
+                                NotUsed.Instance
+                            });
                         }
                         else
                         {

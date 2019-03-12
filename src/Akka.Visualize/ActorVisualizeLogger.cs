@@ -3,7 +3,7 @@ using Akka.Actor;
 
 namespace Akka.Visualize
 {
-    public class ActorVisualizeLogger : TypedActor
+    public class ActorVisualizeLogger : ReceiveActor
     {
         public const string Name = "AkkaVisualizer";
 
