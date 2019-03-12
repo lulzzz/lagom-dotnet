@@ -8,6 +8,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using wyvern.api.@internal.surfaces;
 using System.Text.RegularExpressions;
 using wyvern.api.abstractions;
+using System.Text;
 
 namespace wyvern.api.ioc
 {
@@ -37,13 +38,25 @@ namespace wyvern.api.ioc
                     var restCall = call.CallId as RestCallId;
 
                     var parameters = Regex.Matches(restCall.PathPattern, "\\{([^\\}]*)\\}")
-                            .Select(match => match.Value.Split(":"))
-                            .Select(x => new NonBodyParameter()
+                            .Select(match => match.Value.Substring(1, match.Value.Length - 2))
+                            .Select(x =>
                             {
-                                Name = x[0].Substring(1, x[0].Length - 2),
-                                In = "path"
-                                // TODO: Type from split, min / max, required
-                            } as IParameter)
+                                var parts = x.Split(":");
+                                var type = parts.Length > 1 ? parts[1] : "string";
+                                if (type == "int")
+                                {
+                                    type = "integer";
+                                    // TODO: check min/max values for 64bit
+                                }
+                                return new NonBodyParameter()
+                                {
+                                    Name = parts[0],
+                                    In = "path",
+                                    Required = true,
+                                    Type = type,
+                                    Format = type == "integer" ? "Int32" : null
+                                } as IParameter;
+                            })
                             .ToList();
 
                     var mref = call.MethodRef;
@@ -68,9 +81,12 @@ namespace wyvern.api.ioc
                     var resType = mref.ReturnType
                         .GenericTypeArguments[1]  // Task<T>
                         .GenericTypeArguments[0]; // T
+                    var first = call.MethodRef.Name.IndexOf("<get_") + 5;
+                    var second = call.MethodRef.Name.IndexOf(">");
+                    var method_ref_name = call.MethodRef.Name.Substring(first, second - first);
                     var operation = new Operation()
                     {
-                        OperationId = call.MethodRef.Name,
+                        OperationId = method_ref_name,
                         Consumes = new List<string>() {
                             "application/json"
                         },
@@ -79,19 +95,53 @@ namespace wyvern.api.ioc
                         },
                         Responses = new Dictionary<string, Response>()
                         {
-                            { "200", new Response { Schema = schemaRegistry.GetOrRegister(resType) } }
+                            {
+                                "200", new Response {
+                                    Schema = schemaRegistry.GetOrRegister(resType),
+                                    Description = $"Returns {resType.Name}"
+                                }
+                            }
                         },
                         Tags = new[] { service.Descriptor.Name },
                         Parameters = parameters
                     };
 
+                    Func<String, String> removeTypes = (string str) =>
+                        {
+                            var sb = new StringBuilder();
+                            bool capturing = true;
+                            bool thinking = false;
+                            foreach (var c in str)
+                            {
+                                if (thinking)
+                                {
+                                    if (c == '}')
+                                    {
+                                        thinking = false;
+                                        capturing = true;
+                                    }
+                                    else if (c == ':')
+                                    {
+                                        capturing = false;
+                                        continue;
+                                    }
+                                }
+                                if (c == '{')
+                                    thinking = true;
+                                if (capturing)
+                                    sb.Append(c);
+                            }
+                            return sb.ToString();
+                        };
 
-                    var exists = swaggerDoc.Paths.ContainsKey(restCall.PathPattern);
-                    var path = exists ? swaggerDoc.Paths[restCall.PathPattern] : new PathItem();
+                    var newPath = removeTypes(restCall.PathPattern);
+
+                    var exists = swaggerDoc.Paths.ContainsKey(newPath);
+                    var path = exists ? swaggerDoc.Paths[newPath] : new PathItem();
                     if (!exists)
                     {
                         swaggerDoc.Paths.Add(
-                            restCall.PathPattern,
+                            newPath,
                             path
                         );
                     }

@@ -36,8 +36,7 @@ namespace wyvern.api.@internal.readside.SqlServer
             PrepareCallback = prepareCallback;
             EventHandlers = eventHandlers;
 
-            const string readSideConstrKey = "SqlServerReadSide";
-            var constr = config.GetConnectionString(readSideConstrKey);
+            var constr = config.GetConnectionString(ReadSideId);
             ReadSideConnectionFactory = ReadSideConnectionFactoryInitializer(constr);
         }
 

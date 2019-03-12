@@ -5,6 +5,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Actor;
+using Akka.Dispatch;
+using Akka.Persistence.Query;
+using Akka.Streams;
+using Akka.Streams.Dsl;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -28,7 +33,8 @@ namespace wyvern.api.ioc
             None,
             WithApi,
             WithSwagger,
-            WithVisualizer
+            WithVisualizer,
+            WithTopics
         }
 
         static ReactiveServicesOption Options;
@@ -80,22 +86,25 @@ namespace wyvern.api.ioc
             var services = app.ApplicationServices;
             var reactiveServices = services.GetService<IReactiveServices>();
 
-            Action<Action<Service, Type>> serviceIterator = (x) =>
+            Action<Action<Service, Type>> serviceIterator = x =>
             {
                 foreach (var (serviceType, _) in reactiveServices)
-                {
-                    var instance = services.GetService(serviceType);
-                    var service = (Service)instance;
-                    x(service, serviceType);
-                }
+                    x((Service)services.GetService(serviceType), serviceType);
             };
 
             // Register any service bound topics
-            serviceIterator((service, serviceType) =>
+            if (Options.HasFlag(ReactiveServicesOption.WithTopics))
             {
-                foreach (var topic in service.Descriptor.Topics)
-                    RegisterTopic(topic);
-            });
+                serviceIterator((service, serviceType) =>
+                {
+                    foreach (var topic in service.Descriptor.Topics)
+                        RegisterTopic(
+                            topic,
+                            service,
+                            app.ApplicationServices.GetService<ActorSystem>()
+                        );
+                });
+            }
 
             // Build the API components
             if (Options.HasFlag(ReactiveServicesOption.WithApi))
@@ -165,38 +174,46 @@ namespace wyvern.api.ioc
             });
         }
 
-        private static void RegisterTopic(object t)
+        private static void RegisterTopic(object t, Service s, ActorSystem sys)
         {
-            MethodInfo method;
             var topicCall = (ITopicCall)t;
-            switch (topicCall.TopicHolder)
-            {
-                case MethodTopicHolder methodRef:
-                    switch (methodRef.Method)
-                    {
-                        case MethodInfo preResolved:
-                            method = preResolved;
-                            break;
+            if (!(topicCall.TopicHolder is MethodTopicHolder))
+                throw new NotImplementedException();
+            var holder = topicCall.TopicHolder as MethodTopicHolder;
 
-                        default:
-                            throw new NotImplementedException();
-                    }
+            var topicId = topicCall.TopicId;
+            var producer = holder.Create<object>(s);
+            if (!(producer is TaggedOffsetTopicProducer<object>))
+                throw new NotImplementedException();
 
-                    break;
-                default:
-                    throw new Exception($"Unknown {t.GetType().Name} type");
-            }
+            var p = producer as TaggedOffsetTopicProducer<object>;
+            // TODO: Use offset storage
+            p.Tags.Select(
+                tag =>
+                {
+                    return p.ReadSideStream
+                        .Invoke(tag, Offset.NoOffset())
+                        .ViaMaterialized(KillSwitches.Single<(object, Offset)>(), Keep.Right)
+                        // .VIA()
+                        .ToMaterialized(Sink.Ignore<(object, Offset)>(), Keep.Both)
+                        .Run(ActorMaterializer.Create(sys)); /* materializer..... ActorMaterializer.Create(); */
+                }
+            ).ToArray();
 
-            var methodRefType = method.ReturnType;
-            var requestType = methodRefType.GenericTypeArguments[0];
 
-            var holder = new MethodTopicHolder(method);
 
-            topicCall.GetType()
-                .GetMethod("WithTopicHolder")
-                .Invoke(topicCall, new object[] { holder });
 
-            /* Serializers */
+            // Producer.startTaggedOffsetProducer(
+            //     actorSystem,
+            //     tags.map(_.tag),
+            //     kafkaConfig,
+            //     locateService,
+            //     topicId.value(),
+            //     eventStreamFactory,
+            //     partitionKeyStrategy,
+            //     new JavadslKafkaSerializer(topicCall.messageSerializer().serializerForRequest()),
+            //     offsetStore
+            // );
 
         }
 
@@ -213,77 +230,88 @@ namespace wyvern.api.ioc
 
             var mref = call.MethodRef;
             var mrefParams = mref.GetParameters();
-            var mrefParamNames = mrefParams.Select(x => x.Name);
             var methodRefType = mref.ReturnType;
             var requestType = methodRefType.GenericTypeArguments[0];
 
             routeMapper(
                 path,
                 async (req, res, data) =>
-                {
-                    object[] mrefParamArray = mrefParamNames
-                        .Select(x =>
+                    {
+                        object[] mrefParamArray = mrefParams.Select(x =>
                         {
+                            var type = x.ParameterType;
+                            var name = x.Name;
                             try
                             {
-                                return data.Values[x].ToString();
+                                var val = data.Values[name].ToString();
+                                if (type == typeof(String))
+                                    return val as object;
+                                if (type == typeof(Int64))
+                                    return Int64.Parse(val) as object;
+                                if (type == typeof(Int32))
+                                    return Int32.Parse(val) as object;
+                                if (type == typeof(Int16))
+                                    return Int16.Parse(val) as object;
+
+                                throw new Exception("Unsupported path parameter type: " + type.Name);
                             }
                             catch (Exception)
                             {
-                                throw new Exception($"Failed to match URL parameter [{x}] in path template.");
+                                throw new Exception($"Failed to match URL parameter [{name}] in path template.");
                             }
                         })
                         .ToArray();
 
-                    // TODO: Casting...
+                        // TODO: Casting...
 
-                    var mres = mref.Invoke(service, mrefParamArray);
-                    var cref = mres.GetType().GetMethod("Invoke", new[] { requestType });
+                        var mres = mref.Invoke(service, mrefParamArray);
+                        var cref = mres.GetType().GetMethod("Invoke", new[] { requestType });
 
-                    dynamic task;
-                    if (requestType == typeof(NotUsed))
-                    {
-                        task = cref.Invoke(mres, new object[] { NotUsed.Instance });
+                        dynamic task;
+                        if (requestType == typeof(NotUsed))
+                        {
+                            task = cref.Invoke(mres, new object[] { NotUsed.Instance
+    });
+                        }
+                        else
+                        {
+                            string body;
+                            using (var reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
+                                body = reader.ReadToEnd();
+
+                            var obj = JsonConvert.DeserializeObject(body, requestType);
+                            task = cref.Invoke(mres, new[] { obj });
+                        }
+
+                        try
+                        {
+                            await task;
+                            if (task.Result is Exception)
+                                throw task.Result as Exception;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is StatusCodeException) throw;
+                            // TODO: Logger extensions
+                            res.StatusCode = 500;
+                            var result = task.Result as Exception;
+                            var jsonString = JsonConvert.SerializeObject(result.Message);
+                            byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                            res.ContentType = "application/json";
+                            await res.Body.WriteAsync(content, 0, content.Length);
+                            return;
+                        }
+
+                        {
+                            var result = task.Result;
+
+                            var jsonString = JsonConvert.SerializeObject(result);
+                            byte[] content = Encoding.UTF8.GetBytes(jsonString);
+                            res.ContentType = "application/json";
+                            await res.Body.WriteAsync(content, 0, content.Length);
+                        }
                     }
-                    else
-                    {
-                        string body;
-                        using (var reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
-                            body = reader.ReadToEnd();
-
-                        var obj = JsonConvert.DeserializeObject(body, requestType);
-                        task = cref.Invoke(mres, new[] { obj });
-                    }
-
-                    try
-                    {
-                        await task;
-                        if (task.Result is Exception)
-                            throw task.Result as Exception;
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex is StatusCodeException) throw;
-                        // TODO: Logger extensions
-                        res.StatusCode = 500;
-                        var result = task.Result as Exception;
-                        var jsonString = JsonConvert.SerializeObject(result.Message);
-                        byte[] content = Encoding.UTF8.GetBytes(jsonString);
-                        res.ContentType = "application/json";
-                        await res.Body.WriteAsync(content, 0, content.Length);
-                        return;
-                    }
-
-                    {
-                        var result = task.Result;
-
-                        var jsonString = JsonConvert.SerializeObject(result);
-                        byte[] content = Encoding.UTF8.GetBytes(jsonString);
-                        res.ContentType = "application/json";
-                        await res.Body.WriteAsync(content, 0, content.Length);
-                    }
-                }
-            );
+                );
         }
 
         /// <summary>

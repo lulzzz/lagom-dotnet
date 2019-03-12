@@ -25,7 +25,7 @@ namespace wyvern.api.@internal.sharding
         private ActorSystem ActorSystem { get; }
         private TimeSpan AskTimeout { get; }
 
-        public async Task<object> Ask<TR>(IReplyType<TR> command)
+        public async Task<TR> Ask<TR>(IReplyType<TR> command)
         {
             var task = Region.Ask(
                 new CommandEnvelope(
@@ -50,7 +50,11 @@ namespace wyvern.api.@internal.sharding
 
             try
             {
-                return task.Result;
+                if (task.Result is TR)
+                    return (TR)task.Result;
+                if (task.Result as Exception != null)
+                    throw (Exception)task.Result;
+                throw new InvalidOperationException($"Invalid return type  on ask.  Expected [{typeof(TR)}], found [{task.Result?.GetType()}]");
             }
             catch (Exception ex)
             {
