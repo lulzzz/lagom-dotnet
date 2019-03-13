@@ -27,7 +27,7 @@ namespace wyvern.api.ioc
                 foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
                 {
                     var key = entry.Key as string ?? String.Empty;
-                    if (!key.StartsWith("AKKA:")) continue;
+                    if (!key.ToUpper().StartsWith("AKKA:")) continue;
                     configRoot.WithFallback(ConfigurationFactory.ParseString(
                         $"{key.Replace(":", ".")} = {entry.Value as string ?? String.Empty}"
                     ));
