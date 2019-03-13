@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Akka.Actor;
 using Akka.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +18,37 @@ namespace wyvern.api.ioc
 
         public ReactiveServicesBuilder()
         {
-            ServiceDelegates.Add(x =>
+            ServiceDelegates.Add(services =>
             {
-                var akka_type = Environment.GetEnvironmentVariable("AKKA_TYPE");
-                if (String.IsNullOrEmpty(akka_type))
-                    akka_type = "seed";
-                var configakka = ConfigurationFactory.ParseString(File.ReadAllText($"akka.{akka_type}.conf"));
-                var actorSystem = ActorSystem.Create("ClusterSystem", configakka);
-                x.AddSingleton<ActorSystem>(actorSystem);
+                // Prepare config root
+                var configRoot = ConfigurationFactory.Empty;
+
+                // Load Akka config values from environment variables first
+                foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
+                {
+                    var key = entry.Key as string ?? String.Empty;
+                    if (!key.StartsWith("AKKA:")) continue;
+                    configRoot.WithFallback(ConfigurationFactory.ParseString(
+                        $"{key.Replace(":", ".")} = {entry.Value as string ?? String.Empty}"
+                    ));
+                }
+
+                // Load Fallback sources (environment first, then base config)
+                var environment = Environment.GetEnvironmentVariable("AKKA_ENVIRONMENT");
+                var config = (new[] {
+                        (1, "akka.conf"),
+                        (2, "akka.overrides.conf"),
+                        (3, $"akka.{environment}.conf")
+                    })
+                    .Where(t => (File.Exists(t.Item2)))
+                    .OrderByDescending(t => t.Item1)
+                    .Aggregate(
+                        configRoot,
+                        (acc, cur) => acc.WithFallback(File.ReadAllText(cur.Item2))
+                    );
+
+                var actorSystem = ActorSystem.Create("ClusterSystem", config);
+                services.AddSingleton<ActorSystem>(actorSystem);
                 foreach (var actorSystemDelegate in ActorSystemDelegates)
                     actorSystemDelegate.Invoke(actorSystem);
             });
