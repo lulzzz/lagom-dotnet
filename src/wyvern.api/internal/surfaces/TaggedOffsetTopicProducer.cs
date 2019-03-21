@@ -50,14 +50,14 @@ namespace wyvern.api.@internal.surfaces
 
         public Flow<TMessage, Task<Done>, NotUsed> ServiceBusFlowPublisher(string endpoints)
         {
-            return Flow.FromFunction<TMessage, Task<Done>>((TMessage message) =>
+            return Flow.FromFunction<TMessage, Task<Done>>(message =>
             {
-                Console.WriteLine("Seneddddeediigigngng a ndmdmdmememememsmssssagggeeedddeee!!!");
+                Console.WriteLine(message);
                 return Task.FromResult(Done.Instance);
             });
         }
 
-        public Flow<KeyValuePair<TMessage, Offset>, Task<Done>, NotUsed> EventsPublisherFlow(string endpoints, IOffsetStore offsetsDao)
+        public Flow<KeyValuePair<TMessage, Offset>, Tuple<TMessage, Offset>, NotUsed> EventsPublisherFlow(string endpoints, IOffsetStore offsetsDao)
         {
             return Flow.FromGraph(
                 GraphDsl.Create(
@@ -69,15 +69,18 @@ namespace wyvern.api.@internal.surfaces
 
                         var offsetCommitter = builder.Add(
                             Flow.FromFunction(
-                                (Tuple<TMessage, Offset> e) => offsetsDao.SaveOffset(e.Item2)
-                            )
+                                (Tuple<TMessage, Offset> e) =>
+                                {
+                                    offsetsDao.SaveOffset(e.Item2);
+                                    return KeyValuePair.Create(e.Item1, e.Item2);
+                                })
                         );
-                        
+
                         builder.From(unzip.Out0).To(zip.In0);
                         builder.From(unzip.Out1).To(zip.In1);
                         builder.From(zip.Out).To(offsetCommitter.Inlet);
 
-                        return new FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>(unzip.In, offsetCommitter.Outlet);
+                        return new FlowShape<KeyValuePair<TMessage, Offset>, Tuple<TMessage, Offset>>(unzip.In, zip.Out);
                     }
                 )
             );
@@ -91,9 +94,9 @@ namespace wyvern.api.@internal.surfaces
                 var str = ReadSideStream.Invoke(tag, Offset.NoOffset());
 
                 str.ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
-                    .Via(EventsPublisherFlow("endpoint", offsetDao))
-                    .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
-                    .Run(ActorMaterializer.Create(sys));
+                //.Via(EventsPublisherFlow("endpoint", offsetDao));
+                .ToMaterialized(Sink.Ignore<KeyValuePair<TMessage, Offset>>(), Keep.Both)
+                .Run(ActorMaterializer.Create(sys));
             }
         }
     }

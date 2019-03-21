@@ -11,4 +11,10 @@
     <ProjectReference Include="..\src\wyvern.utils\wyvern.utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="akka.conf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
