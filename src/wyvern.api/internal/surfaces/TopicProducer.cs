@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Akka;
 using Akka.Persistence.Query;
@@ -14,7 +15,7 @@ namespace wyvern.api.@internal.surfaces
             AggregateEventTag.Of<SingletonEvent>("singleton")
         );
 
-        public static Topic<TMessage> SingleStreamWithOffset<TMessage>(Func<Offset, Source<(TMessage, Offset), NotUsed>> eventStream)
+        public static Topic<TMessage> SingleStreamWithOffset<TMessage>(Func<Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStream)
             where TMessage : class
         {
             return TaggedStreamWithOffset<TMessage>(SingletonTag)
@@ -22,7 +23,7 @@ namespace wyvern.api.@internal.surfaces
             );
         }
 
-        public static Func<Func<IAggregateEventTag, Offset, Source<(TMessage, Offset), NotUsed>>, Topic<TMessage>>
+        public static Func<Func<IAggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>>, Topic<TMessage>>
             TaggedStreamWithOffset<TMessage>(ImmutableArray<AggregateEventTag> tags)
             where TMessage : class
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Akka;
@@ -33,8 +34,8 @@ public class HelloServiceImpl : HelloService
             return await entity.Ask<string>(new UpdateGreetingCommand(name, req.Message));
         };
 
-    public override Topic<object> GreetingsTopic() =>
-        TopicProducer.SingleStreamWithOffset(
+    public override Topic<HelloEvent> GreetingsTopic() =>
+        TopicProducer.SingleStreamWithOffset<HelloEvent>(
             fromOffset => Registry.EventStream<HelloEvent>(
                 ArticleWebsiteDisplayRuleEventTag.Instance, fromOffset
             )
@@ -43,7 +44,7 @@ public class HelloServiceImpl : HelloService
                 var (@event, offset) = envelope;
                 var material = @event;
                 // TODO: send material to service bus
-                return (material as object, offset);
+                return KeyValuePair.Create(material, offset);
             })
         );
 }

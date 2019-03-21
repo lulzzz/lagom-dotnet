@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Actor;
@@ -195,7 +196,7 @@ namespace wyvern.api.@internal.sharding
             return ActorSystem.Terminate();
         }
 
-        public Source<(E, Offset), NotUsed> EventStream<E>(AggregateEventTag aggregateTag, Offset fromOffset)
+        public Source<KeyValuePair<E, Offset>, NotUsed> EventStream<E>(AggregateEventTag aggregateTag, Offset fromOffset)
             where E : AggregateEvent<E>
         {
             if (!EventsByTagQuery.HasValue)
@@ -208,7 +209,7 @@ namespace wyvern.api.@internal.sharding
             var startingOffset = MapStartingOffset(fromOffset);
 
             return queries.EventsByTag(tag, startingOffset)
-                .Select(env => (env.Event as E, env.Offset));
+                .Select(env => KeyValuePair.Create(env.Event as E, env.Offset));
         }
 
 

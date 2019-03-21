@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Akka;
 using Akka.Actor;
 using Akka.Persistence.Query;
@@ -15,7 +16,7 @@ namespace wyvern.api.@internal.readside
         public static Props Props<TE>(
             ReadSideConfig config,
             ClusterStartupTask globalPrepareTask,
-            Func<AggregateEventTag, Offset, Source<(TE, Offset), NotUsed>> eventStreamFactory,
+            Func<AggregateEventTag, Offset, Source<KeyValuePair<TE, Offset>, NotUsed>> eventStreamFactory,
             Func<ReadSideProcessor<TE>> processor
         ) where TE : AggregateEvent<TE>
         {
@@ -46,7 +47,7 @@ namespace wyvern.api.@internal.readside
     {
         ReadSideConfig Config { get; }
         ClusterStartupTask GlobalPrepareTask { get; }
-        Func<AggregateEventTag, Offset, Source<(TE, Offset), NotUsed>> EventStreamFactory { get; }
+        Func<AggregateEventTag, Offset, Source<KeyValuePair<TE, Offset>, NotUsed>> EventStreamFactory { get; }
         Func<ReadSideProcessor<TE>> Processor { get; }
 
         internal Option<IKillSwitch> Shutdown { get; set; } = Option<IKillSwitch>.None;
@@ -54,7 +55,7 @@ namespace wyvern.api.@internal.readside
         public ReadSideActor(
             ReadSideConfig config,
             ClusterStartupTask globalPrepareTask,
-            Func<AggregateEventTag, Offset, Source<(TE, Offset), NotUsed>> eventStreamFactory,
+            Func<AggregateEventTag, Offset, Source<KeyValuePair<TE, Offset>, NotUsed>> eventStreamFactory,
             Func<ReadSideProcessor<TE>> processor)
         {
             Config = config;

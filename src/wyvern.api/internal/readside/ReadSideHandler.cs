@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Persistence.Query;
@@ -19,7 +20,7 @@ namespace wyvern.api.@internal.readside
             return Task.FromResult(Offset.NoOffset());
         }
 
-        public virtual Flow<(TE, Offset), Done, NotUsed> Handle()
+        public virtual Flow<KeyValuePair<TE, Offset>, Done, NotUsed> Handle()
         {
             throw new NotImplementedException();
         }

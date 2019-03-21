@@ -16,7 +16,7 @@ public abstract class HelloService : Service
 
     public abstract Func<string, Func<UpdateGreetingRequest, Task<string>>> UpdateGreeting { get; }
 
-    public abstract Topic<object> GreetingsTopic();
+    public abstract Topic<HelloEvent> GreetingsTopic();
 
     public override IDescriptor Descriptor =>
         Named("HelloService")

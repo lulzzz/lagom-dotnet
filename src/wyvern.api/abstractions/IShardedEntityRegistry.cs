@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Persistence.Query;
@@ -12,7 +13,7 @@ namespace wyvern.api.abstractions
 {
     public interface IShardedEntityRegistry
     {
-        Source<(TE, Offset), NotUsed> EventStream<TE>(AggregateEventTag instance, Offset fromOffset)
+        Source<KeyValuePair<TE, Offset>, NotUsed> EventStream<TE>(AggregateEventTag instance, Offset fromOffset)
             where TE : AggregateEvent<TE>;
 
         IShardedEntityReference RefFor<T>(string entityId) where T : class;

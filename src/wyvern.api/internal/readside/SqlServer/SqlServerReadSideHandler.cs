@@ -75,17 +75,17 @@ namespace wyvern.api.@internal.readside.SqlServer
             }
         }
 
-        public override Flow<(TE, Offset), Done, NotUsed> Handle()
+        public override Flow<KeyValuePair<TE, Offset>, Done, NotUsed> Handle()
         {
             return Flow.FromFunction(
-                new Func<(TE, Offset), Done>(
+                new Func<KeyValuePair<TE, Offset>, Done>(
                     pair =>
                     {
-                        if (EventHandlers.TryGetValue(pair.Item1.GetType(), out var dbAction))
+                        if (EventHandlers.TryGetValue(pair.Key.GetType(), out var dbAction))
                         {
                             using (var con = ReadSideConnectionFactory.Invoke())
                             {
-                                dbAction(con, pair.Item1, pair.Item2);
+                                dbAction(con, pair.Key, pair.Value);
                             }
                         }
                         else
@@ -102,9 +102,9 @@ namespace wyvern.api.@internal.readside.SqlServer
                                 and tag = @tag",
                                 new
                                 {
-                                    offset = (pair.Item2 as Sequence).Value,
+                                    offset = (pair.Value as Sequence).Value,
                                     readSideId = ReadSideId,
-                                    tag = (pair.Item1.AggregateTag as AggregateEventTag).Tag
+                                    tag = (pair.Key.AggregateTag as AggregateEventTag).Tag
                                 });
                         }
 
