@@ -27,7 +27,7 @@ public class Startup
                 //ActorVisualizeExtension.InstallVisualizer(system, new WebApiVisualizer());
             });
         },
-            ReactiveServicesOption.WithApi | ReactiveServicesOption.WithSwagger
+            ReactiveServicesOption.WithApi | ReactiveServicesOption.WithSwagger | ReactiveServicesOption.WithTopics
         );
 
     }
