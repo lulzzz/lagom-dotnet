@@ -37,14 +37,14 @@ public class HelloServiceImpl : HelloService
     public override Topic<HelloEvent> GreetingsTopic() =>
         TopicProducer.SingleStreamWithOffset<HelloEvent>(
             fromOffset => Registry.EventStream<HelloEvent>(
-                ArticleWebsiteDisplayRuleEventTag.Instance, fromOffset
+                HelloEventTag.Instance, fromOffset
             )
             .Select(envelope =>
             {
                 var (@event, offset) = envelope;
-                var material = @event;
-                // TODO: send material to service bus
-                return KeyValuePair.Create(material, offset);
+                var message = @event;
+                Console.WriteLine("Used transformer function");
+                return KeyValuePair.Create(message, offset);
             })
         );
 }

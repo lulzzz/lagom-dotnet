@@ -8,7 +8,7 @@ public abstract partial class HelloEvent
     /// the event stream
     /// </summary>
     /// <returns></returns>
-    public static readonly new AggregateEventTag Tag =
+    public new static readonly AggregateEventTag Tag =
         AggregateEventTag.Of<HelloEvent>(
             "HelloEvent"
         );
@@ -21,7 +21,7 @@ public abstract partial class HelloEvent
     /// <summary>
     /// Provide an aggregate tag instance
     /// </summary>
-    public class ArticleWebsiteDisplayRuleEventTag
+    public class HelloEventTag
     {
         public static AggregateEventTag Instance { get; } = AggregateEventTag.Of<HelloEvent>();
     }

@@ -181,12 +181,15 @@ namespace wyvern.api.ioc
             if (!(topicCall.TopicHolder is MethodTopicHolder))
                 throw new NotImplementedException();
 
-            var holder = (MethodTopicHolder)topicCall.TopicHolder;
-            var producer = holder.Method.Invoke(s, null);
-            var messageType = producer.GetType().GetGenericArguments()[0];
-            var producerType = typeof(ITaggedOffsetTopicProducer<>);
-            var producerGeneric = producerType.MakeGenericType(messageType);
-            producerGeneric.GetMethod("Init").Invoke(producer, new object[] { sys });
+            // TODO: Offset registry
+            // TODO: SenderLink
+
+            var producer = ((MethodTopicHolder)topicCall.TopicHolder).Method.Invoke(s, null);
+
+            typeof(ITaggedOffsetTopicProducer<>)
+                .MakeGenericType(producer.GetType().GetGenericArguments()[0])
+                .GetMethod("Init")
+                .Invoke(producer, new object[] { sys });
         }
 
         /// <summary>

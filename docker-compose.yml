@@ -1,5 +1,6 @@
 version: '3.3'
 services:
+
   db:
     build:
       context: ./docker/db
@@ -11,6 +12,15 @@ services:
       - "1433:1433"
     healthcheck:
       test: sqlcmd -S localhost -U SA -P '000000000!'   -Q 'select 1'
+
+  amqp:
+    build:
+      context: ./docker/amqp
+      dockerfile: ./Dockerfile
+    ports:
+      - "5672:5672"
+      - "61616:61616"
+      - "8161:8161"
 
   seed:
     build:
