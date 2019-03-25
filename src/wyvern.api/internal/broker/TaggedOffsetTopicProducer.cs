@@ -16,19 +16,14 @@ using Address = Amqp.Address;
 using wyvern.entity.@event;
 using wyvern.entity.@event.aggregate;
 using Newtonsoft.Json;
+using static Producer;
+using wyvern.api.abstractions;
 
 namespace wyvern.api.@internal.surfaces
 {
-    public interface IOffsetStore
+    public class InMemoryOffsetDao : IOffsetDao
     {
-        Offset LoadedOffset { get; }
-        Task<Done> SaveOffset(Offset o);
-    }
-
-    // TODO: Proper OffsetStore implementation
-    public class OffsetStore : IOffsetStore
-    {
-        public Offset LoadedOffset { get; private set; } = Offset.NoOffset();
+        public Offset LoadedOffset { get; private set; }
 
         public Task<Done> SaveOffset(Offset o)
         {
@@ -36,6 +31,15 @@ namespace wyvern.api.@internal.surfaces
             return Task.FromResult(Done.Instance);
         }
     }
+
+    public class InMemoryOffsetStore : IOffsetStore
+    {
+        public Task<IOffsetDao> Prepare(string processorId, string tag)
+        {
+            return Task.FromResult<IOffsetDao>(new InMemoryOffsetDao());
+        }
+    }
+
 
     public interface InternalTopic
     {
@@ -46,7 +50,7 @@ namespace wyvern.api.@internal.surfaces
     {
         ImmutableArray<AggregateEventTag> Tags { get; }
         Func<AggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> ReadSideStream { get; }
-        void Init(ActorSystem sys);
+        void Init(ActorSystem sys, string topicId);
     }
 
     public sealed class TaggedOffsetTopicProducer<TMessage> : InternalTopic<TMessage>, ITaggedOffsetTopicProducer<TMessage>
@@ -57,95 +61,26 @@ namespace wyvern.api.@internal.surfaces
             Func<AggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> readSideStream)
         {
             (Tags, ReadSideStream) = (tags, readSideStream);
-
-            // TODO: Inject these.
-
-            var connection = new Connection(
-                new Address("amqp://guest:guest@localhost:5672"),
-                SaslProfile.Anonymous,
-                new Open()
-                {
-                    ContainerId = "client.1.2",
-                    HostName = "localhost",
-                    MaxFrameSize = 8 * 1024
-                },
-                (c, o) => { /* do someting with remote Open o */ });
-
-            var session = new Session(connection);
-
-            SenderLink = new SenderLink(session, "session", "q");
-            OffsetStore = new OffsetStore();
         }
 
         public Func<AggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> ReadSideStream { get; }
         public ImmutableArray<AggregateEventTag> Tags { get; }
 
-        IOffsetStore OffsetStore { get; }
         SenderLink SenderLink { get; }
 
-        public void Init(ActorSystem sys)
+        public void Init(ActorSystem sys, string topicId)
         {
             foreach (var tag in Tags)
-            {
-                ReadSideStream.Invoke(tag, Offset.NoOffset())
-                    .ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
-                    .Via(EventsPublisherFlow())
-                    .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
-                    .Run(sys.Materializer());
-            }
+                Producer.StartTaggedOffsetProducer<TMessage>(
+                    sys,
+                    Tags,
+                    new TopicConfig(sys.Settings.Config),
+                    topicId,
+                    (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
+                    new InMemoryOffsetStore()
+                );
 
         }
 
-
-        private Task<Done> ServiceBusFlowPublisher(TMessage m)
-        {
-            // TODO: Partitionkey strategy
-
-            var bf = new BinaryFormatter();
-            using (var ms = new MemoryStream())
-            {
-                var obj = JsonConvert.SerializeObject(m);
-                bf.Serialize(ms, obj);
-
-                SenderLink.Send(new Message
-                {
-                    BodySection = new Data
-                    {
-                        Binary = ms.ToArray()
-                    }
-                });
-                return Task.FromResult(Done.Instance);
-            }
-        }
-
-        private IGraph<FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>, NotUsed> EventsPublisherFlow()
-        {
-            return Flow.FromGraph(
-                GraphDsl.Create(
-                    Flow.FromFunction(
-                        (TMessage m) => ServiceBusFlowPublisher(m)
-                    ),
-                    (builder, shape) =>
-                    {
-                        var unzip = builder.Add(new UnZip<TMessage, Offset>());
-                        var zip = builder.Add(new Zip<Task<Done>, Offset>());
-                        var offsetCommitter = builder.Add(
-                            Flow.FromFunction(
-                                (Tuple<Task<Done>, Offset> x) =>
-                                    OffsetStore.SaveOffset(x.Item2)
-                            )
-                        );
-
-                        builder.From(unzip.Out0).Via(shape).To(zip.In0);
-                        builder.From(unzip.Out1).To(zip.In1);
-                        builder.From(zip.Out).To(offsetCommitter.Inlet);
-
-                        return new FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>(
-                            unzip.In, offsetCommitter.Outlet
-                        );
-                    }
-                )
-            );
-        }
     }
 }

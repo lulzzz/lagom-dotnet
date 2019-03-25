@@ -185,11 +185,10 @@ namespace wyvern.api.ioc
             // TODO: SenderLink
 
             var producer = ((MethodTopicHolder)topicCall.TopicHolder).Method.Invoke(s, null);
-
             typeof(ITaggedOffsetTopicProducer<>)
                 .MakeGenericType(producer.GetType().GetGenericArguments()[0])
                 .GetMethod("Init")
-                .Invoke(producer, new object[] { sys });
+                .Invoke(producer, new object[] { sys, topicCall.TopicId.Name });
         }
 
         /// <summary>

@@ -43,7 +43,6 @@ public class HelloServiceImpl : HelloService
             {
                 var (@event, offset) = envelope;
                 var message = @event;
-                Console.WriteLine("Used transformer function");
                 return KeyValuePair.Create(message, offset);
             })
         );
