@@ -4,7 +4,7 @@ using Akka.Streams.Util;
 namespace wyvern.utils
 {
     /// <summary>
-    ///     Extensions for Akka.Streams.Util.Option
+    /// Extensions for Akka.Streams.Util.Option
     /// </summary>
     public static class OptionExtensions
     {
@@ -16,7 +16,7 @@ namespace wyvern.utils
         public static void ForEach<T>(this Option<T> options, Action<T> func) { if (options.HasValue) func(options.Value); }
 
         /// <summary>
-        ///     Choose either the option value (if it has one) or the provided alternate
+        /// Choose either the option value (if it has one) or the provided alternate
         /// </summary>
         /// <param name="o"></param>
         /// <param name="e"></param>
@@ -28,7 +28,7 @@ namespace wyvern.utils
         }
 
         /// <summary>
-        ///     Map the input type to the output type via the given delegate
+        /// Map the input type to the output type via the given delegate
         /// </summary>
         /// <param name="o"></param>
         /// <param name="f"></param>
@@ -46,7 +46,7 @@ namespace wyvern.utils
     public class OptionInitializers
     {
         /// <summary>
-        ///     Create 'some' instance of T
+        /// Create 'some' instance of T
         /// </summary>
         /// <param name="obj"></param>
         /// <typeparam name="T"></typeparam>

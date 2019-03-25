@@ -10,7 +10,7 @@ using wyvern.utils;
 namespace wyvern.api.@internal.behavior
 {
     /// <summary>
-    ///     Surface of the of the behavior builder which helps build an
+    /// Surface of the of the behavior builder which helps build an
     /// immutable behavior for an entity command, event, state mapping.
     /// </summary>
     /// <typeparam name="TC"></typeparam>

@@ -1,7 +1,7 @@
 namespace wyvern.entity.@event
 {
     /// <summary>
-    ///     Event interfaces
+    /// Event interfaces
     /// </summary>
     public interface IEvent
     {

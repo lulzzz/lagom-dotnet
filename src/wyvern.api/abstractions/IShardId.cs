@@ -1,12 +1,12 @@
 namespace wyvern.api.abstractions
 {
     /// <summary>
-    ///     Shard identifier
+    /// Shard identifier
     /// </summary>
     public interface IShardId
     {
         /// <summary>
-        ///     Shard identifier
+        /// Shard identifier
         /// </summary>
         /// <value></value>
         string ShardId { get; }

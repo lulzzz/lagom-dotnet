@@ -11,7 +11,7 @@ namespace wyvern.entity.@event.aggregate
         private const string Separator = "|";
 
         /// <summary>
-        ///     Constructor
+        /// Constructor
         /// </summary>
         /// <param name="eventType"></param>
         /// <param name="tag"></param>
@@ -22,7 +22,7 @@ namespace wyvern.entity.@event.aggregate
         }
 
         /// <summary>
-        ///     Event tag
+        /// Event tag
         /// </summary>
         /// <value></value>
         public string Tag { get; }
@@ -44,7 +44,7 @@ namespace wyvern.entity.@event.aggregate
         }
 
         /// <summary>
-        ///     Instantiate a tag of the given type
+        /// Instantiate a tag of the given type
         /// </summary>
         /// <typeparam name="E"></typeparam>
         /// <returns></returns>

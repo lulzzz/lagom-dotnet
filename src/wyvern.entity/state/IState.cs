@@ -1,7 +1,7 @@
 ﻿namespace wyvern.entity.state
 {
     /// <summary>
-    ///     State interface
+    /// State interface
     /// </summary>
     public interface IState
     {

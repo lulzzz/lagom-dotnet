@@ -4,7 +4,7 @@ namespace wyvern.api.@internal.surfaces
 {
     /// <inheritdoc />
     /// <summary>
-    ///     Path call identifier
+    /// Path call identifier
     /// </summary>
     [Immutable]
     internal sealed class PathCallId : CallId
@@ -15,12 +15,12 @@ namespace wyvern.api.@internal.surfaces
         {
             PathPattern = pathPattern;
         }
-        
+
         public override string ToString()
         {
             return PathPattern;
         }
-        
+
         // TODO: Hash code
     }
 }

@@ -1,7 +1,7 @@
 namespace wyvern.entity.command
 {
     /// <summary>
-    ///     Command interface
+    /// Command interface
     /// </summary>
     public interface ICommand
     {

@@ -6,7 +6,7 @@ using wyvern.utils;
 namespace wyvern.api.@internal.operations
 {
     /// <summary>
-    ///     Event marker for persistence
+    /// Event marker for persistence
     /// </summary>
     /// <typeparam name="E"></typeparam>
     [Immutable]
@@ -14,19 +14,19 @@ namespace wyvern.api.@internal.operations
         where E : AbstractEvent
     {
         /// <summary>
-        ///     Event
+        /// Event
         /// </summary>
         /// <value></value>
         public E Event { get; }
 
         /// <summary>
-        ///     Delegate event wrapper for post-action side effects
+        /// Delegate event wrapper for post-action side effects
         /// </summary>
         /// <value></value>
         public Action<E> AfterPersist { get; }
 
         /// <summary>
-        ///     Constructor
+        /// Constructor
         /// </summary>
         public PersistOne(E @event, Action<E> afterPersist) =>
             (Event, AfterPersist) = (@event, afterPersist);

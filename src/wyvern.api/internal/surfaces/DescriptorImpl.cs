@@ -6,26 +6,26 @@ namespace wyvern.api.@internal.surfaces
 {
     /// <inheritdoc />
     /// <summary>
-    ///     Descriptor
+    /// Descriptor
     /// </summary>
     [Immutable]
     internal class DescriptorImpl : IDescriptor
     {
         /// <summary>
-        ///     Descriptor
+        /// Descriptor
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         internal DescriptorImpl(string name)
         {
             (Name, Calls, Topics) =
-                (name, ImmutableArray<ICall>.Empty, 
+                (name, ImmutableArray<ICall>.Empty,
                     ImmutableArray<ITopicCall>.Empty);
         }
 
 
         /// <summary>
-        ///     Descriptor
+        /// Descriptor
         /// </summary>
         /// <param name="name"></param>
         /// <param name="calls"></param>
@@ -41,25 +41,25 @@ namespace wyvern.api.@internal.surfaces
         }
 
         /// <summary>
-        ///     Name
+        /// Name
         /// </summary>
         /// <value></value>
         public string Name { get; }
 
         /// <summary>
-        ///     Calls
+        /// Calls
         /// </summary>
         /// <value></value>
         public ImmutableArray<ICall> Calls { get; }
 
         /// <summary>
-        ///     Topics
+        /// Topics
         /// </summary>
         /// <value></value>
         public ImmutableArray<ITopicCall> Topics { get; }
 
         /// <summary>
-        ///     Add an array of calls to the descriptor
+        /// Add an array of calls to the descriptor
         /// </summary>
         /// <param name="calls"></param>
         /// <returns></returns>
@@ -70,7 +70,7 @@ namespace wyvern.api.@internal.surfaces
 
         /// <inheritdoc />
         /// <summary>
-        ///     Add topics to the descriptor
+        /// Add topics to the descriptor
         /// </summary>
         /// <param name="topics"></param>
         /// <returns></returns>
@@ -80,7 +80,7 @@ namespace wyvern.api.@internal.surfaces
         }
 
         /// <summary>
-        ///     Add a topic to the descriptor
+        /// Add a topic to the descriptor
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
@@ -90,7 +90,7 @@ namespace wyvern.api.@internal.surfaces
         }
 
         /// <summary>
-        ///     Return a new instance with concatenated calls
+        /// Return a new instance with concatenated calls
         /// </summary>
         /// <param name="calls"></param>
         /// <returns></returns>
@@ -100,7 +100,7 @@ namespace wyvern.api.@internal.surfaces
         }
 
         /// <summary>
-        ///     Return a new instance with concatenated topics
+        /// Return a new instance with concatenated topics
         /// </summary>
         /// <param name="topics"></param>
         /// <returns></returns>

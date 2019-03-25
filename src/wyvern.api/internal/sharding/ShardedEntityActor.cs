@@ -22,7 +22,7 @@ using wyvern.utils;
 namespace wyvern.api.@internal.sharding
 {
     /// <summary>
-    ///     Entity actor for sharded operations
+    /// Entity actor for sharded operations
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TC"></typeparam>
@@ -35,19 +35,19 @@ namespace wyvern.api.@internal.sharding
         where TS : AbstractState
     {
         /// <summary>
-        ///     Separator used in delimiting the components of the persistent entity id
+        /// Separator used in delimiting the components of the persistent entity id
         /// </summary>
         private const char Separator = '|';
 
         /// <summary>
-        ///     Number of events recorded on this entity
+        /// Number of events recorded on this entity
         /// </summary>
         private long EventCount;
 
         private Func<SqlConnection> SqlConnectionFactory { get; }
 
         /// <summary>
-        ///     Public constructor (to be used only via Props)
+        /// Public constructor (to be used only via Props)
         /// </summary>
         /// <param name="idPrefix"></param>
         /// <param name="entityId"></param>
@@ -93,25 +93,25 @@ namespace wyvern.api.@internal.sharding
          */
 
         /// <summary>
-        ///     The entity object
+        /// The entity object
         /// </summary>
         /// <value></value>
         private T Entity { get; }
 
         /// <summary>
-        ///     Persistence id prefix. Generally, the name of the actor system
+        /// Persistence id prefix. Generally, the name of the actor system
         /// </summary>
         /// <value></value>
         private string PersistenceIdPrefix { get; }
 
         /// <summary>
-        ///     The entity Id
+        /// The entity Id
         /// </summary>
         /// <value></value>
         private string EntityId { get; }
 
         /// <summary>
-        ///     Persistence identifier for the given entity
+        /// Persistence identifier for the given entity
         /// </summary>
         /// <value></value>
         public override string PersistenceId => $"{PersistenceIdPrefix}{Separator}{EntityId}";
@@ -121,13 +121,13 @@ namespace wyvern.api.@internal.sharding
          */
 
         /// <summary>
-        ///     Number of events to occur before snapshot
+        /// Number of events to occur before snapshot
         /// </summary>
         /// <value></value>
         private int SnapshotAfter { get; }
 
         /// <summary>
-        ///     Passivate this actor if no activity is noted within the given time span
+        /// Passivate this actor if no activity is noted within the given time span
         /// </summary>
         /// <value></value>
         private TimeSpan PassivateAfterIdleTimeout { get; }
@@ -137,13 +137,13 @@ namespace wyvern.api.@internal.sharding
          */
 
         /// <summary>
-        ///     Event handlers delegated to the entity behavior
+        /// Event handlers delegated to the entity behavior
         /// </summary>
         private IReadOnlyDictionary<Type, Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>>
             EventHandlers => Entity.BehaviorProperty.EventHandlers;
 
         /// <summary>
-        ///     Command handlers delegated to the entity behavior
+        /// Command handlers delegated to the entity behavior
         /// </summary>
         private IReadOnlyDictionary<Type, Func<TC, ShardedEntity<TC, TE, TS>.ICommandContext<TC>, IPersist<TE>>>
             CommandHandlers => Entity.BehaviorProperty.CommandHandlers;
@@ -261,7 +261,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Entrypoint for receiving a command
+        /// Entrypoint for receiving a command
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -309,7 +309,7 @@ namespace wyvern.api.@internal.sharding
         bool _init = false;
 
         /// <summary>
-        ///     Recover or initialize the entity state
+        /// Recover or initialize the entity state
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -367,7 +367,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Closure over sender
+        /// Closure over sender
         /// </summary>
         /// <typeparam name="TC"></typeparam>
         /// <returns></returns>
@@ -377,7 +377,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Obtain tag for given event
+        /// Obtain tag for given event
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>

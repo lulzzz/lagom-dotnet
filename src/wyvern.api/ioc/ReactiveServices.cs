@@ -6,12 +6,12 @@ using wyvern.api.abstractions;
 namespace wyvern.api.ioc
 {
     /// <summary>
-    ///     Typed enumerator of reactive services
+    /// Typed enumerator of reactive services
     /// </summary>
     public class ReactiveServices : IReactiveServices
     {
         /// <summary>
-        ///     Constructor
+        /// Constructor
         /// </summary>
         public ReactiveServices(IEnumerable<(Type, Type)> serviceMap)
         {
@@ -19,13 +19,13 @@ namespace wyvern.api.ioc
         }
 
         /// <summary>
-        ///     Map of service types to their implementations
+        /// Map of service types to their implementations
         /// </summary>
         private List<(Type, Type)> ServiceMap { get; } = new List<(Type, Type)>();
 
         /// <inheritdoc />
         /// <summary>
-        ///     Get ServiceMap typed enumerator
+        /// Get ServiceMap typed enumerator
         /// </summary>
         /// <returns></returns>
         public IEnumerator<(Type, Type)> GetEnumerator()
@@ -35,7 +35,7 @@ namespace wyvern.api.ioc
 
         /// <inheritdoc />
         /// <summary>
-        ///     Get ServiceMap untyped enumerator
+        /// Get ServiceMap untyped enumerator
         /// </summary>
         /// <returns></returns>
         IEnumerator IEnumerable.GetEnumerator()

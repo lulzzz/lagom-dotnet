@@ -1,13 +1,13 @@
 namespace wyvern.entity.@event.aggregate
 {
     /// <summary>
-    ///     Aggregate event
+    /// Aggregate event
     /// </summary>
     /// <typeparam name="E"></typeparam>
     public interface IAggregateEvent : IEvent
     {
         /// <summary>
-        ///     Aggregate tag
+        /// Aggregate tag
         /// </summary>
         /// <value></value>
         IAggregateEventTagger AggregateTag { get; }

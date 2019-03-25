@@ -3,7 +3,7 @@ using System.Reflection;
 namespace wyvern.api.abstractions
 {
     /// <summary>
-    ///     Untyped ICall interface
+    /// Untyped ICall interface
     /// </summary>
     public interface ICall
     {
@@ -12,7 +12,7 @@ namespace wyvern.api.abstractions
     }
 
     /// <summary>
-    ///     Interface supplied to support covariance/contravarience
+    /// Interface supplied to support covariance/contravarience
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>

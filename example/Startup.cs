@@ -15,7 +15,6 @@ public class Startup
         services.AddShardedEntities(x =>
         {
             x.WithShardedEntity<HelloEntity, HelloCommand, HelloEvent, HelloState>();
-            // x.WithReadSide<ArticleWebsiteDisplayRuleEvent, ArticleWebsiteDisplayRuleReadSideProcessor>();
         });
 
         services.AddReactiveServices(x =>
@@ -23,7 +22,6 @@ public class Startup
             x.AddReactiveService<HelloService, HelloServiceImpl>();
             x.AddActorSystemDelegate(system =>
             {
-                // TODO: disconnect between WithVisualizer option...
                 //ActorVisualizeExtension.InstallVisualizer(system, new WebApiVisualizer());
             });
         },

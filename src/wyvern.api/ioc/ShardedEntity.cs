@@ -15,8 +15,8 @@ using wyvern.entity.state;
 namespace wyvern.api.ioc
 {
     /// <summary>
-    ///     Represents a sharded entity containing a the entity's behavior and
-    ///     given state
+    /// Represents a sharded entity containing a the entity's behavior and
+    /// given state
     /// </summary>
     /// <typeparam name="TC"></typeparam>
     /// <typeparam name="TE"></typeparam>
@@ -27,25 +27,25 @@ namespace wyvern.api.ioc
         where TS : AbstractState
     {
         /// <summary>
-        ///     Current Behavior instance
+        /// Current Behavior instance
         /// </summary>
         /// <value></value>
         public Behavior BehaviorProperty { get; internal set; }
 
         /// <summary>
-        ///     Entity unique identifier
+        /// Entity unique identifier
         /// </summary>
         /// <value></value>
         public string EntityId { get; internal set; }
 
         /// <summary>
-        ///     Type name of current entity
+        /// Type name of current entity
         /// </summary>
         /// <returns></returns>
         public string EntityTypeName => GetType().Name;
 
         /// <summary>
-        ///     Reference to state of current behaviour
+        /// Reference to state of current behaviour
         /// </summary>
         protected TS State => BehaviorProperty.State;
 
@@ -58,7 +58,7 @@ namespace wyvern.api.ioc
         public abstract Behavior InitialBehavior(Option<TS> state);
 
         /// <summary>
-        ///     Create a new typed instance of BehaviorBuilder
+        /// Create a new typed instance of BehaviorBuilder
         /// </summary>
         /// <param name="state"></param>
         /// <typeparam name="TC"></typeparam>
@@ -71,7 +71,7 @@ namespace wyvern.api.ioc
         }
 
         /// <summary>
-        ///     Event to call when recovery is completed
+        /// Event to call when recovery is completed
         /// </summary>
         /// <returns></returns>
         public Behavior RecoveryCompleted()
@@ -80,12 +80,12 @@ namespace wyvern.api.ioc
         }
 
         /// <summary>
-        ///     Behavior (convenience class)
+        /// Behavior (convenience class)
         /// </summary>
         public sealed class Behavior
         {
             /// <summary>
-            ///     Behavior constructor
+            /// Behavior constructor
             /// </summary>
             /// <param name="commandHandlers"></param>
             /// <param name="eventHandlers"></param>
@@ -101,26 +101,26 @@ namespace wyvern.api.ioc
             }
 
             /// <summary>
-            ///     Current state of the given entity
+            /// Current state of the given entity
             /// </summary>
             /// <value></value>
             internal TS State { get; }
 
             /// <summary>
-            ///     Map of command types to command handlers (readonly, immutable)
+            /// Map of command types to command handlers (readonly, immutable)
             /// </summary>
             /// <value></value>
             public IReadOnlyDictionary<Type, Func<TC, ICommandContext<TC>, IPersist<TE>>> CommandHandlers { get; }
 
             /// <summary>
-            ///     Map of event types to event handlers (readonly, immutable)
+            /// Map of event types to event handlers (readonly, immutable)
             /// </summary>
             /// <value></value>
             public IReadOnlyDictionary<Type, Func<TE, Behavior, Behavior>> EventHandlers { get; }
 
             /// <summary>
-            ///     Create a new Behavior with the given state.  Only accessible
-            ///     internally within scope of the invocation on a given event handler.
+            /// Create a new Behavior with the given state.  Only accessible
+            /// internally within scope of the invocation on a given event handler.
             /// </summary>
             /// <param name="newState">State to apply to the behavior</param>
             /// <typeparam name="TS2">State type</typeparam>
@@ -134,13 +134,13 @@ namespace wyvern.api.ioc
 
         /// <inheritdoc />
         /// <summary>
-        ///     Command context interface
+        /// Command context interface
         /// </summary>
         /// <typeparam name="T"></typeparam>
         public interface ICommandContext<T> : IReadOnlyCommandContext
         {
             /// <summary>
-            ///     Persist and after persist handlers
+            /// Persist and after persist handlers
             /// </summary>
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
@@ -148,7 +148,7 @@ namespace wyvern.api.ioc
             IPersist<TE> ThenPersist(TE e, Action<TE> afterPersist = null);
 
             /// <summary>
-            ///     Persist all and after persist handlers
+            /// Persist all and after persist handlers
             /// </summary>
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
@@ -156,7 +156,7 @@ namespace wyvern.api.ioc
             IPersist<TE> ThenPersistAll(ImmutableArray<TE> e, Action afterPersist = null);
 
             /// <summary>
-            ///     Done handler
+            /// Done handler
             /// </summary>
             /// <returns></returns>
             IPersist<TE> Done();
@@ -185,7 +185,7 @@ namespace wyvern.api.ioc
         }
 
         /// <summary>
-        ///     Command context
+        /// Command context
         /// </summary>
         /// <typeparam name="T"></typeparam>
         internal class CommandContext<T> : ReadOnlyCommandContext, ICommandContext<T>
@@ -193,7 +193,7 @@ namespace wyvern.api.ioc
         {
 
             /// <summary>
-            ///     CommandContext constructor
+            /// CommandContext constructor
             /// </summary>
             /// <param name="sender">Sending actor</param>
             /// <returns></returns>
@@ -203,9 +203,9 @@ namespace wyvern.api.ioc
 
             /// <inheritdoc />
             /// <summary>
-            ///     Within scope of command execution, persist the given event.
-            ///     Subsequently, may execute the 'afterPersist' action for any
-            ///     side effects.
+            /// Within scope of command execution, persist the given event.
+            /// Subsequently, may execute the 'afterPersist' action for any
+            /// side effects.
             /// </summary>
             /// <param name="e"></param>
             /// <param name="afterPersist"></param>
@@ -236,7 +236,7 @@ namespace wyvern.api.ioc
 
             /// <inheritdoc />
             /// <summary>
-            ///     Indicate that command execution is done
+            /// Indicate that command execution is done
             /// </summary>
             /// <typeparam name="E"></typeparam>
             /// <returns></returns>

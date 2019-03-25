@@ -25,7 +25,7 @@ namespace wyvern.api.@internal.sharding
     internal class ShardedEntityRegistry : IShardedEntityRegistry
     {
         /// <summary>
-        ///     Registry for entities to be processed using the given actor system
+        /// Registry for entities to be processed using the given actor system
         /// </summary>
         /// <param name="actorSystem"></param>
         public ShardedEntityRegistry(ActorSystem actorSystem)
@@ -78,97 +78,97 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Plugin id for the query model
+        /// Plugin id for the query model
         /// </summary>
         /// <returns></returns>
         protected virtual Option<string> QueryPluginId { get; } = new Option<string>();
 
         /// <summary>
-        ///     Registry name used for prefixing the shard region name
+        /// Registry name used for prefixing the shard region name
         /// </summary>
         /// <value></value>
         private Option<string> Name { get; } = Option<string>.None;
 
         /// <summary>
-        ///     Underlying actor system
+        /// Underlying actor system
         /// </summary>
         /// <value></value>
         private ActorSystem ActorSystem { get; }
 
         /// <summary>
-        ///     Sharding regions
+        /// Sharding regions
         /// </summary>
         /// <value></value>
         private ClusterSharding Sharding { get; }
 
         /// <summary>
-        ///     Global sharding settings
+        /// Global sharding settings
         /// </summary>
         /// <value></value>
         private ClusterShardingSettings ShardingSettings { get; }
 
         /// <summary>
-        ///     Delegate for extracting entity id from incoming events
+        /// Delegate for extracting entity id from incoming events
         /// </summary>
         /// <value></value>
         private ExtractEntityId ExtractEntityId { get; }
 
         /// <summary>
-        ///     Delegate for extracting shard id from incoming events
+        /// Delegate for extracting shard id from incoming events
         /// </summary>
         /// <value></value>
         private ExtractShardId ExtractShardId { get; }
 
         /// <summary>
-        ///     Reference for extracting events by tag
+        /// Reference for extracting events by tag
         /// </summary>
         /// <value></value>
         private Option<IEventsByTagQuery> EventsByTagQuery { get; }
 
         /// <summary>
-        ///     Registry of event types to entity names
+        /// Registry of event types to entity names
         /// </summary>
         /// <returns></returns>
         private ConcurrentDictionary<Type, string> ReverseRegister { get; } = new ConcurrentDictionary<Type, string>();
 
         /// <summary>
-        ///     Registry of entity names to entity types
+        /// Registry of entity names to entity types
         /// </summary>
         /// <returns></returns>
         private ConcurrentDictionary<string, Type> RegisteredTypeNames { get; } =
             new ConcurrentDictionary<string, Type>();
 
         /// <summary>
-        ///     Timeout on entity reference Ask
+        /// Timeout on entity reference Ask
         /// </summary>
         /// <value></value>
         private TimeSpan AskTimeout { get; }
 
         /// <summary>
-        ///     Max number of available shards, used in hash based distribution
+        /// Max number of available shards, used in hash based distribution
         /// </summary>
         /// <value></value>
         private int MaxNumberOfShards { get; }
 
         /// <summary>
-        ///     Role for the current actor system
+        /// Role for the current actor system
         /// </summary>
         /// <value></value>
         private Option<string> Role { get; }
 
         /// <summary>
-        ///     Number of events to process before commiting a snapshot
+        /// Number of events to process before commiting a snapshot
         /// </summary>
         /// <value></value>
         private int SnapshotAfter { get; }
 
         /// <summary>
-        ///     Reference to actor system termination
+        /// Reference to actor system termination
         /// </summary>
         public Task WhenTerminated => ActorSystem.WhenTerminated;
 
         /// <summary>
-        ///     Get a reference to the entity with the given entityId
+        /// Get a reference to the entity with the given entityId
         /// </summary>
         /// <param name="entityId"></param>
         /// <typeparam name="T"></typeparam>
@@ -188,7 +188,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Request to terminate the actor system
+        /// Request to terminate the actor system
         /// </summary>
         /// <returns></returns>
         public Task Terminate()
@@ -271,13 +271,13 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Prepends the registry name ot the given entity type name
+        /// Prepends the registry name ot the given entity type name
         /// </summary>
         /// <param name="entityTypeName">Entity type name</param>
         /// <returns></returns>
         /// <remarks>
-        ///     The output is intended to be used as a unique name for
-        ///     identifying the shard region
+        /// The output is intended to be used as a unique name for
+        /// identifying the shard region
         /// </remarks>
         private string PrependRegistryName(string entityTypeName)
         {
@@ -285,7 +285,7 @@ namespace wyvern.api.@internal.sharding
         }
 
         /// <summary>
-        ///     Provider for self-joining on cluster registration
+        /// Provider for self-joining on cluster registration
         /// </summary>
         /// <param name="actorSystem"></param>
         /// <param name="environment"></param>

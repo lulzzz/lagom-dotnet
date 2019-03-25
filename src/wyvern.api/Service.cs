@@ -8,20 +8,20 @@ namespace wyvern.api
     // TODO: Interface and inject.
 
     /// <summary>
-    ///     Main entry point for converting requests to calls against various
-    ///     system endpoints
+    /// Main entry point for converting requests to calls against various
+    /// system endpoints
     /// </summary>
     [Immutable]
     public abstract class Service
     {
         /// <summary>
-        ///     Descriptor for this service
+        /// Descriptor for this service
         /// </summary>
         /// <value></value>
         public abstract IDescriptor Descriptor { get; }
 
         /// <summary>
-        ///     Initializes a named descriptor on this service
+        /// Initializes a named descriptor on this service
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>

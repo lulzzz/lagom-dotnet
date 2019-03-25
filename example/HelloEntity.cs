@@ -12,7 +12,6 @@ using static HelloEvent;
 
 public class HelloEntity : ShardedEntity<HelloCommand, HelloEvent, HelloState>
 {
-
     public override Behavior InitialBehavior(Option<HelloState> state)
     {
         return NewBehaviorBuilder(new HelloState())

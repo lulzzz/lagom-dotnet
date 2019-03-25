@@ -1,7 +1,7 @@
 namespace wyvern.api.abstractions
 {
     /// <summary>
-    ///     Typed reply type interface
+    /// Typed reply type interface
     /// </summary>
     /// <typeparam name="TR"></typeparam>
     public interface IReplyType<TR> : IReplyType
@@ -9,7 +9,7 @@ namespace wyvern.api.abstractions
     }
 
     /// <summary>
-    ///     Reply type interface
+    /// Reply type interface
     /// </summary>
     public interface IReplyType
     {

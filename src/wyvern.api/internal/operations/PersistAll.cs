@@ -7,7 +7,7 @@ using wyvern.utils;
 namespace wyvern.api.@internal.operations
 {
     /// <summary>
-    ///     Aggregate event marker for persistance
+    /// Aggregate event marker for persistance
     /// </summary>
     /// <typeparam name="E"></typeparam>
     [Immutable]
@@ -15,19 +15,19 @@ namespace wyvern.api.@internal.operations
         where E : AbstractEvent
     {
         /// <summary>
-        ///     Events array
+        /// Events array
         /// </summary>
         /// <value></value>
         internal ImmutableArray<E> Events { get; }
 
         /// <summary>
-        ///     After persist effect
+        /// After persist effect
         /// </summary>
         /// <value></value>
         internal Action AfterPersist { get; }
 
         /// <summary>
-        ///     Constructor
+        /// Constructor
         /// </summary>
         /// <param name="events"></param>
         /// <param name="afterPersist"></param>

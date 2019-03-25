@@ -14,7 +14,7 @@ namespace wyvern.api.@internal.sharding
     internal static class ShardedEntityActorProps
     {
         /// <summary>
-        ///     Props initializer
+        /// Props initializer
         /// </summary>
         /// <param name="persistenceIdPrefix"></param>
         /// <param name="entityId"></param>

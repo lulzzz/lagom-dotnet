@@ -12,9 +12,9 @@ namespace wyvern.api.@internal.behavior
 {
     /// <inheritdoc />
     /// <summary>
-    ///     Behavior builder which is typed to a given entity.
-    ///     Assists with generating an immutable Behavior object.  Note, the
-    ///     builder itself is not immutable as the object is rather transient.
+    /// Behavior builder which is typed to a given entity.
+    /// Assists with generating an immutable Behavior object.  Note, the
+    /// builder itself is not immutable as the object is rather transient.
     /// </summary>
     /// <typeparam name="TC"></typeparam>
     /// <typeparam name="TE"></typeparam>
@@ -52,20 +52,20 @@ namespace wyvern.api.@internal.behavior
         private TS State { get; }
 
         /// <summary>
-        ///     Map of command types to command handlers
+        /// Map of command types to command handlers
         /// </summary>
         /// <value></value>
         private ImmutableDictionary<Type, Func<TC, ShardedEntity<TC, TE, TS>.ICommandContext<TC>, IPersist<TE>>> CommandHandlers { get; }
 
         /// <summary>
-        ///     Map of event types to event handlers
+        /// Map of event types to event handlers
         /// </summary>
         /// <value></value>
         private ImmutableDictionary<Type, Func<TE, ShardedEntity<TC, TE, TS>.Behavior, ShardedEntity<TC, TE, TS>.Behavior>> EventHandlers
         { get; }
 
         /// <summary>
-        ///     Set the command handler for the given type
+        /// Set the command handler for the given type
         /// </summary>
         /// <param name="func"></param>
         /// <typeparam name="TC2"></typeparam>
@@ -115,7 +115,7 @@ namespace wyvern.api.@internal.behavior
             );
 
         /// <summary>
-        ///     Set the event handler for the given type
+        /// Set the event handler for the given type
         /// </summary>
         /// <param name="func"></param>
         /// <typeparam name="TE2"></typeparam>
@@ -135,7 +135,7 @@ namespace wyvern.api.@internal.behavior
             );
 
         /// <summary>
-        ///     Set the event handler for the given type
+        /// Set the event handler for the given type
         /// </summary>
         /// <param name="func"></param>
         /// <typeparam name="TE2"></typeparam>
@@ -154,8 +154,8 @@ namespace wyvern.api.@internal.behavior
             );
 
         /// <summary>
-        ///     Set a readonly command handler for the given type
-        ///     (Readonly command does not impact entity state)
+        /// Set a readonly command handler for the given type
+        /// (Readonly command does not impact entity state)
         /// </summary>
         /// <param name="func"></param>
         /// <typeparam name="TC2"></typeparam>
@@ -179,7 +179,7 @@ namespace wyvern.api.@internal.behavior
             );
 
         /// <summary>
-        ///     Build the current Behavior model
+        /// Build the current Behavior model
         /// </summary>
         /// <returns></returns>
         [NoSideEffects]
