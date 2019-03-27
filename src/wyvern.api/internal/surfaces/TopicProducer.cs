@@ -23,8 +23,7 @@ namespace wyvern.api.@internal.surfaces
             );
         }
 
-        public static Func<Func<IAggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>>, Topic<TMessage>>
-            TaggedStreamWithOffset<TMessage>(ImmutableArray<AggregateEventTag> tags)
+        public static Func<Func<IAggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>>, Topic<TMessage>> TaggedStreamWithOffset<TMessage>(ImmutableArray<AggregateEventTag> tags)
             where TMessage : class
         {
             return eventStream =>
