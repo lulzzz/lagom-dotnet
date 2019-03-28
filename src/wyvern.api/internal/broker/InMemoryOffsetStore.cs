@@ -1,7 +1,9 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Akka;
 using Akka.Configuration;
+using Akka.Persistence.Query;
 using Akka.Streams.Util;
 using Dapper;
 using wyvern.api.abstractions;
@@ -73,6 +75,7 @@ namespace wyvern.api.@internal.surfaces
 
         public Task<IOffsetDao> Prepare(string processorId, string tag)
         {
+            // TODO: This probably doesn't need to be so configurable, risky injection
             using (var con = SqlProvider.Invoke())
             {
                 con.Execute($@"
@@ -85,7 +88,29 @@ namespace wyvern.api.@internal.surfaces
                             PRIMARY KEY ({Config.IdColumnName}, {Config.TagColumnName})
                         );
                 ");
+                // TODO: Check for initial offset, insert if not exist.
+                // TODO: Load the offset from the database, or insert no offset.
+                return Task.FromResult<IOffsetDao>(new SqlServerOffsetDao(this, processorId, tag, Offset.NoOffset()));
+            }
+        }
 
+        public Task<Done> UpdateOffset(string readSideId, string tag, Offset offset)
+        {
+            using (var con = SqlProvider.Invoke())
+            {
+                var res = con.Execute($"update {Config.TableName} set {Config.SequenceOffsetColumnName} = @offset where {Config.IdColumnName} = @readSideId and {Config.TagColumnName} = @tag",
+                    new
+                    {
+                        offset,
+                        readSideId,
+                        tag
+                    });
+                if (res != 1)
+                {
+                    // TODO: Attempt insert
+                    throw new InvalidOperationException("SQL Update did not result in a single record update.");
+                }
+                return Task.FromResult(Done.Instance);
             }
         }
 
@@ -95,9 +120,22 @@ namespace wyvern.api.@internal.surfaces
     {
         SqlServerOffsetStore Store { get; }
 
-        public SqlServerOffsetDao(SqlServerOffsetStore store)
+        string ReadSideId { get; }
+        string Tag { get; }
+
+        public Offset LoadedOffset { get; }
+
+        public SqlServerOffsetDao(SqlServerOffsetStore store, string readSideId, string tag, Offset loadedOffset)
         {
             Store = store;
+            ReadSideId = readSideId;
+            Tag = tag;
+            LoadedOffset = loadedOffset;
+        }
+
+        public Task<Done> SaveOffset(Offset o)
+        {
+            return Store.UpdateOffset(ReadSideId, Tag, o);
         }
     }
 
