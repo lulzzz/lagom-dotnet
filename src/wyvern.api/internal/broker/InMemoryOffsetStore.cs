@@ -73,9 +73,16 @@ namespace wyvern.api.@internal.surfaces
             Config = config;
         }
 
-        public Task<IOffsetDao> Prepare(string processorId, string tag)
+        /// <summary>
+        /// Prepare the offset tables if they do not already exist, and return
+        /// an offset dao object.  The dao object will contain the current
+        /// offset value if it exists, or no offset if it does not exist.
+        /// </summary>
+        /// <param name="readSideId"></param>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        public async Task<IOffsetDao> Prepare(string readSideId, string tag)
         {
-            // TODO: This probably doesn't need to be so configurable, risky injection
             using (var con = SqlProvider.Invoke())
             {
                 con.Execute($@"
@@ -88,10 +95,40 @@ namespace wyvern.api.@internal.surfaces
                             PRIMARY KEY ({Config.IdColumnName}, {Config.TagColumnName})
                         );
                 ");
-                // TODO: Check for initial offset, insert if not exist.
-                // TODO: Load the offset from the database, or insert no offset.
-                return Task.FromResult<IOffsetDao>(new SqlServerOffsetDao(this, processorId, tag, Offset.NoOffset()));
             }
+
+            Offset offset = Offset.NoOffset();
+            var offsetRow = await GetOffset(readSideId, tag);
+            if (offsetRow?.SequenceOffset.HasValue == true)
+            {
+                offset = Sequence.Sequence(offsetRow.SequenceOffset.Value);
+            }
+            else
+            {
+                using (var con = SqlProvider.Invoke())
+                {
+                    var res = con.Execute($@"
+                        insert into [{Config.TableName}] (
+                            {Config.IdColumnName},
+                            {Config.TagColumnName},
+                            {Config.SequenceOffsetColumnName},
+                            {Config.TimeUuidOffsetColumnName})
+                        values (
+                            @readSideId,
+                            @tag,
+                            @offset,
+                            null
+                        )
+                    ", new
+                    {
+                        readSideId,
+                        tag,
+                        offset = 0L
+                    });
+                }
+            }
+
+            return new SqlServerOffsetDao(this, readSideId, tag, offset);
         }
 
         public Task<Done> UpdateOffset(string readSideId, string tag, Offset offset)
@@ -111,6 +148,37 @@ namespace wyvern.api.@internal.surfaces
                     throw new InvalidOperationException("SQL Update did not result in a single record update.");
                 }
                 return Task.FromResult(Done.Instance);
+            }
+        }
+
+        /// <summary>
+        /// Returns the offset row for the given readsideid and tag pair, or
+        /// null if the offset row does not exist.
+        /// </summary>
+        /// <param name="readSideId"></param>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        Task<OffsetRow> GetOffset(string readSideId, string tag)
+        {
+            using (var con = SqlProvider.Invoke())
+            {
+                var row = con.QueryFirstOrDefaultAsync<OffsetRow>($@"
+                    select
+                        {Config.IdColumnName} Id,
+                        {Config.TagColumnName} Tag,
+                        {Config.SequenceOffsetColumnName} SequenceOffset,
+                        {Config.TimeUuidOffsetColumnName} TimeUuidOffset
+                    from
+                        [{Config.TableName}]
+                    where
+                        {Config.IdColumnName} = @readSideId AND
+                        {Config.TagColumnName} = @tag
+                ", new
+                {
+                    readSideId,
+                    tag
+                });
+                return row;
             }
         }
 
