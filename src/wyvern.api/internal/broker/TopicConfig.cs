@@ -6,11 +6,20 @@ internal static partial class Producer
 {
     public class TopicConfig
     {
-        public Option<string> Endpoint { get; }
+        public Option<string> Host { get; }
+        public Option<string> Username { get; }
+        public Option<string> Password { get; }
+        public Option<bool> UseAmqps { get; }
+        public Option<string> Entity { get; }
 
         public TopicConfig(Config config)
         {
-            Endpoint = new Option<String>(config.GetString("wyvern.broker.servicebus.client.default.endpoint"));
+            var conf = config.GetConfig("wyvern.broker.servicebus.client.default");
+            Host = new Option<string>(conf.GetString("host"));
+            Username = new Option<string>(conf.GetString("username"));
+            Password = new Option<string>(conf.GetString("password"));
+            UseAmqps = new Option<bool>(conf.GetBoolean("useAmqps"));
+            Entity = new Option<string>(conf.GetString("entity"));
         }
     }
 

@@ -162,18 +162,14 @@ internal static partial class Producer
             OffsetStore = offsetStore;
 
             Connection = new Connection(
-                new Amqp.Address(TopicConfig.Endpoint.Value),
-                SaslProfile.Anonymous,
-                new Open()
-                {
-                    ContainerId = "client.1.2",
-                    HostName = "localhost",
-                    MaxFrameSize = 8 * 1024
-                },
-                (c, o) =>
-                {
-                    // TODO: begin receive in here, and capture failure.
-                });
+                new Amqp.Address(
+                    TopicConfig.Host.Value,
+                    TopicConfig.UseAmqps.OrElse(false) ? 5671 : 5672,
+                    TopicConfig.Username.OrElse(null),
+                    TopicConfig.Password.OrElse(null),
+                    "/",
+                    TopicConfig.UseAmqps.OrElse(false) ? "AMQPS" : "AMQP"
+                ));
 
             Receive<EnsureActive>(ensureActive =>
             {
@@ -181,6 +177,7 @@ internal static partial class Producer
                 daoFuture.PipeTo(Self);
                 Become(() => Initializing(ensureActive.EntityId));
             });
+
         }
 
         /// <summary>
@@ -208,18 +205,20 @@ internal static partial class Producer
         private void Initializing(string entityId)
         {
             GeneralHandler();
-            var endpoint = TopicConfig.Endpoint;
+            var endpoint = TopicConfig.Host;
+            var entity = TopicConfig.Entity;
+
             Receive<IOffsetDao>(offsetDao =>
             {
-                if (!endpoint.HasValue)
+                if (!endpoint.HasValue || !entity.HasValue)
                 {
                     Context.System.Log.Error(
-                        $"Failed to configure endpoint for producer [{entityId}]"
+                        $"Failed to configure endpoint for producer [{entityId}].  Check the connection string parameters."
                     );
                     Context.Stop(Self);
                     return;
                 }
-                Run(entityId as string, endpoint.Value, offsetDao);
+                Run(entityId as string, TopicConfig, offsetDao);
             });
 
             // receive none, context.stop
@@ -245,13 +244,13 @@ internal static partial class Producer
         /// <param name="tag"></param>
         /// <param name="endpoint"></param>
         /// <param name="offsetDao"></param>
-        public void Run(string tag, string endpoint, IOffsetDao offsetDao)
+        public void Run(string tag, TopicConfig config, IOffsetDao offsetDao)
         {
             EventStreamFactory.Invoke(tag, offsetDao.LoadedOffset)
-                    .ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
-                    .Via(EventsPublisherFlow(endpoint, offsetDao))
-                    .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
-                    .Run(Context.Materializer());
+                .ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
+                .Via(EventsPublisherFlow(config, offsetDao))
+                .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
+                .Run(Context.Materializer());
 
             Become(() => Active());
         }
@@ -262,13 +261,13 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="offsetDao"></param>
         /// <returns></returns>
-        private IGraph<FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>, NotUsed> EventsPublisherFlow(string endpoint, IOffsetDao offsetDao)
+        private IGraph<FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>, NotUsed> EventsPublisherFlow(TopicConfig config, IOffsetDao offsetDao)
         {
             return Flow.FromGraph(
                 GraphDsl.Create(
                     /* Publish */
                     Flow.FromFunction(
-                        (TMessage m) => ServiceBusFlowPublisher(endpoint, m)
+                        (TMessage m) => ServiceBusFlowPublisher(config, m)
                     ),
                     /* Unzip/Zip Flow */
                     (builder, shape) =>
@@ -300,12 +299,12 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="m"></param>
         /// <returns></returns>
-        private Task<Done> ServiceBusFlowPublisher(string endpoint, TMessage m)
+        private Task<Done> ServiceBusFlowPublisher(TopicConfig config, TMessage m)
         {
             try
             {
                 var session = new Session(Connection);
-                var senderLink = new SenderLink(session, "session", "queue");
+                var senderLink = new SenderLink(session, "session", config.Entity.Value);
 
                 var bf = new BinaryFormatter();
                 using (var ms = new MemoryStream())
@@ -317,10 +316,14 @@ internal static partial class Producer
                     {
                         BodySection = new Data
                         {
+                            // TODO: Incorporate custom serialization
                             Binary = ms.ToArray()
                         }
                     });
                 }
+
+                senderLink.Close();
+                session.Close();
             }
             catch (Exception ex)
             {
