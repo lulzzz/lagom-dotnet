@@ -277,10 +277,10 @@ internal static partial class Producer
                         var zip = builder.Add(new Zip<Task<Done>, Offset>());
                         var offsetCommitter = builder.Add(
                             Flow.FromFunction(
-                                (Tuple<Task<Done>, Offset> x) =>
-                                    offsetDao.SaveOffset(x.Item2)
-                            )
-                        );
+                                    (Tuple<Task<Done>, Offset> x) =>
+                                        offsetDao.SaveOffset(x.Item2)
+                                )
+                            );
 
                         builder.From(unzip.Out0).Via(shape).To(zip.In0);
                         builder.From(unzip.Out1).To(zip.In1);

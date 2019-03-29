@@ -10,6 +10,7 @@ using wyvern.api.abstractions;
 
 namespace wyvern.api.@internal.surfaces
 {
+
     public class SqlServerOffsetStore : IOffsetStore
     {
         public class OffsetStoreConfiguration
@@ -30,13 +31,14 @@ namespace wyvern.api.@internal.surfaces
             public OffsetStoreConfiguration(Config config)
             {
                 var conf = config.GetConfig("wyvern.persistence.read-side.sqlserver.tables.offset");
-                var tableName = conf.GetString("tableName");
-                var schemaName = conf.GetString("schemaName");
+                TableName = conf.GetString("tableName");
+                SchemaName = conf.GetString("schemaName");
+
                 var columnsCfg = conf.GetConfig("columnNames");
-                var idColumnName = columnsCfg.GetString("readSideId");
-                var tagColumnName = columnsCfg.GetString("tag");
-                var sequenceOffsetColumnName = columnsCfg.GetString("sequenceOffset");
-                var timeUuidOffsetColumnName = columnsCfg.GetString("timeUuidOffset");
+                IdColumnName = columnsCfg.GetString("readSideId");
+                TagColumnName = columnsCfg.GetString("tag");
+                SequenceOffsetColumnName = columnsCfg.GetString("sequenceOffset");
+                TimeUuidOffsetColumnName = columnsCfg.GetString("timeUuidOffset");
             }
 
             public override string ToString()
@@ -74,7 +76,7 @@ namespace wyvern.api.@internal.surfaces
         {
             using (var con = SqlProvider.Invoke())
             {
-                con.Execute($@"
+                var query = $@"
                     if not exists (select * from sysobjects where name='{Config.TableName}' and xtype='U')
                         CREATE TABLE [{Config.TableName}] (
                             {Config.IdColumnName} VARCHAR(255),
@@ -83,7 +85,8 @@ namespace wyvern.api.@internal.surfaces
                             {Config.TimeUuidOffsetColumnName} char(36),
                             PRIMARY KEY ({Config.IdColumnName}, {Config.TagColumnName})
                         );
-                ");
+                ";
+                con.Execute(query);
             }
 
             Offset offset = Offset.NoOffset();
@@ -127,7 +130,7 @@ namespace wyvern.api.@internal.surfaces
                 var res = con.Execute($"update {Config.TableName} set {Config.SequenceOffsetColumnName} = @offset where {Config.IdColumnName} = @readSideId and {Config.TagColumnName} = @tag",
                     new
                     {
-                        offset,
+                        offset = ((Sequence)offset).Value,
                         readSideId,
                         tag
                     });
@@ -150,7 +153,7 @@ namespace wyvern.api.@internal.surfaces
         {
             using (var con = SqlProvider.Invoke())
             {
-                var row = con.QueryFirstOrDefaultAsync<OffsetRow>($@"
+                var row = con.QueryFirstOrDefault<OffsetRow>($@"
                     select
                         {Config.IdColumnName} Id,
                         {Config.TagColumnName} Tag,
@@ -166,7 +169,7 @@ namespace wyvern.api.@internal.surfaces
                     readSideId,
                     tag
                 });
-                return row;
+                return Task.FromResult(row);
             }
         }
     }

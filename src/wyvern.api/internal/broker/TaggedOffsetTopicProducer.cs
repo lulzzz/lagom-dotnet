@@ -17,6 +17,7 @@ using wyvern.entity.@event.aggregate;
 using Newtonsoft.Json;
 using static Producer;
 using wyvern.api.abstractions;
+using static wyvern.api.@internal.surfaces.SqlServerOffsetStore;
 
 namespace wyvern.api.@internal.surfaces
 {
@@ -50,14 +51,18 @@ namespace wyvern.api.@internal.surfaces
 
         public void Init(ActorSystem sys, string topicId)
         {
+            var config = sys.Settings.Config;
             foreach (var tag in Tags)
                 Producer.StartTaggedOffsetProducer<TMessage>(
                     sys,
                     Tags,
-                    new TopicConfig(sys.Settings.Config),
+                    new TopicConfig(config),
                     topicId,
                     (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
-                    new InMemoryOffsetStore() // TODO: Use proper offsetstore
+                    new SqlServerOffsetStore(
+                        new SqlServerProvider(config).GetconnectionProvider(),
+                        new OffsetStoreConfiguration(sys.Settings.Config)
+                    )
                 );
 
         }
