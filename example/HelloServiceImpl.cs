@@ -57,7 +57,6 @@ public class HelloServiceImpl : HelloService
         () =>
         async webSocket =>
         {
-            Logger.LogInformation("Websocket call taken");
             var buffer = new byte[1024 * 4];
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
@@ -68,11 +67,10 @@ public class HelloServiceImpl : HelloService
             .RunForeach(
                 (KeyValuePair<HelloEvent, Offset> envelope) =>
                 {
-                    Logger.LogInformation("Websocket event processing");
-
                     var (@event, offset) = envelope;
                     var message = @event;
-                    var msg = Encoding.ASCII.GetBytes("hello");
+                    var obj = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+                    var msg = Encoding.ASCII.GetBytes(obj);
 
                     Task.Run(async () =>
                     {
