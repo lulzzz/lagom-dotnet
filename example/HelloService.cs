@@ -1,4 +1,5 @@
 using System;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Akka;
 using wyvern.api;
@@ -16,13 +17,16 @@ public abstract class HelloService : Service
 
     public abstract Func<string, Func<UpdateGreetingRequest, Task<string>>> UpdateGreeting { get; }
 
+    public abstract Func<Func<WebSocket, Task>> HelloStream { get; }
+
     public abstract Topic<HelloEvent> GreetingsTopic();
 
     public override IDescriptor Descriptor =>
         Named("HelloService")
             .WithCalls(
                 RestCall(Method.GET, "/api/hello/{name}", SayHello),
-                RestCall(Method.POST, "/api/hello/{name}", UpdateGreeting)
+                RestCall(Method.POST, "/api/hello/{name}", UpdateGreeting),
+                StreamCall("/ws/hello", HelloStream)
             )
             .WithTopics(
                 Topic("greetings-service", GreetingsTopic)

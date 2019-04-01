@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Actor;
+using Akka.Persistence.Query;
+using Akka.Streams;
 using Akka.Streams.Dsl;
+using Microsoft.Extensions.Logging;
 using wyvern.api.abstractions;
 using wyvern.api.@internal.surfaces;
 using wyvern.entity.@event.aggregate;
@@ -14,8 +21,20 @@ public class HelloServiceImpl : HelloService
 {
     IShardedEntityRegistry Registry { get; }
 
-    public HelloServiceImpl(IShardedEntityRegistry registry)
-        => Registry = registry;
+    ILogger<HelloServiceImpl> Logger { get; }
+
+    ActorSystem ActorSystem { get; }
+
+    public HelloServiceImpl(
+            IShardedEntityRegistry registry,
+            ILogger<HelloServiceImpl> logger,
+            ActorSystem actorSystem
+        )
+    {
+        Registry = registry;
+        Logger = logger;
+        ActorSystem = actorSystem;
+    }
 
     public override Func<string, Func<NotUsed, Task<string>>> SayHello =>
             name =>
@@ -32,6 +51,51 @@ public class HelloServiceImpl : HelloService
         {
             var entity = Registry.RefFor<HelloEntity>(name);
             return await entity.Ask<string>(new UpdateGreetingCommand(name, req.Message));
+        };
+
+    public override Func<Func<WebSocket, Task>> HelloStream =>
+        () =>
+        async webSocket =>
+        {
+            Logger.LogInformation("Websocket call taken");
+            var buffer = new byte[1024 * 4];
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+            await Registry.EventStream<HelloEvent>(
+                HelloEventTag.Instance,
+                Offset.NoOffset()
+            )
+            .RunForeach(
+                (KeyValuePair<HelloEvent, Offset> envelope) =>
+                {
+                    Logger.LogInformation("Websocket event processing");
+
+                    var (@event, offset) = envelope;
+                    var message = @event;
+                    var msg = Encoding.ASCII.GetBytes("hello");
+
+                    Task.Run(async () =>
+                    {
+                        await webSocket.SendAsync(
+                                new ArraySegment<byte>(
+                                    msg,
+                                    0,
+                                    msg.Length
+                                ),
+                                WebSocketMessageType.Text,
+                                true,
+                                CancellationToken.None
+                            );
+                    });
+                },
+                ActorMaterializer.Create(ActorSystem)
+            );
+
+            while (!result.CloseStatus.HasValue)
+            {
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         };
 
     public override Topic<HelloEvent> GreetingsTopic() =>

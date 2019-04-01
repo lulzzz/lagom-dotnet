@@ -229,5 +229,27 @@ namespace wyvern.api
                 new MethodTopicHolder(methodRef.Method)
             );
         }
+
+        /// <summary>
+        /// Stream call using websockets
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="pathPattern"></param>
+        /// <param name="Func<Func<TRequest"></param>
+        /// <param name="methodRef"></param>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <returns></returns>
+        protected static ICall<TRequest, TResponse> StreamCall<TRequest, TResponse>(
+            string pathPattern,
+            Func<Func<TRequest, TResponse>> methodRef)
+            where TRequest : class
+            where TResponse : class
+        {
+            return new Call<TRequest, TResponse>(
+                new StreamCallId(pathPattern),
+                methodRef.Method
+            );
+        }
     }
 }

@@ -107,6 +107,8 @@ namespace wyvern.api.ioc
                 });
             }
 
+            app.UseWebSockets();
+
             // Build the API components
             if (Options.HasFlag(ReactiveServicesOption.WithApi))
             {
@@ -116,7 +118,20 @@ namespace wyvern.api.ioc
                 ServiceIterator((service, serviceType) =>
                 {
                     foreach (var call in service.Descriptor.Calls)
-                        RegisterCall(router, service, serviceType, call);
+                    {
+                        switch (call.CallId)
+                        {
+                            case RestCallId r:
+                                RegisterCall(router, service, serviceType, call);
+                                break;
+                            case StreamCallId s:
+                                RegisterStream(router, service, serviceType, call, app);
+                                break;
+                            default:
+                                throw new Exception("Unknown call type");
+                        }
+
+                    }
                 });
 
                 // Visualization components
@@ -189,6 +204,7 @@ namespace wyvern.api.ioc
                 .MakeGenericType(producer.GetType().GetGenericArguments()[0])
                 .GetMethod("Init")
                 .Invoke(producer, new object[] { sys, topicCall.TopicId.Name });
+
         }
 
         /// <summary>
@@ -291,6 +307,43 @@ namespace wyvern.api.ioc
         }
 
         /// <summary>
+        /// Register a route to the service call
+        /// </summary>
+        /// <param name="router"></param>
+        /// <param name="service"></param>
+        /// <param name="serviceType"></param>
+        /// <param name="call"></param>
+        private static void RegisterStream(IRouteBuilder router, Service service, Type serviceType, ICall call, IApplicationBuilder app)
+        {
+            var (_, path) = ExtractRoutePath(router, call);
+
+            var mref = call.MethodRef;
+            var mrefParams = mref.GetParameters();
+            var methodRefType = mref.ReturnType;
+
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path != path)
+                {
+                    await next();
+                }
+                else
+                {
+                    if (!context.WebSockets.IsWebSocketRequest)
+                        return;
+
+                    var socket = await context.WebSockets.AcceptWebSocketAsync();
+                    // TODO: Params, other things
+                    var mres = mref.Invoke(service, new object[] { });
+                    var cref = mres.GetType().GetMethod("Invoke");
+                    var t = (Task)cref.Invoke(mres, new object[] { socket });
+                    await t.ConfigureAwait(false);
+                }
+            });
+
+        }
+
+        /// <summary>
         /// Extract route path from call identifier
         /// </summary>
         private static (Func<string, Func<HttpRequest, HttpResponse, RouteData, Task>, IRouteBuilder>, string)
@@ -318,6 +371,9 @@ namespace wyvern.api.ioc
 
                 case RestCallId restCallIdentifier:
                     throw new InvalidOperationException("Unhandled REST Method type for RestCallId");
+
+                case StreamCallId streamCallIdentifier:
+                    return (null, streamCallIdentifier.PathPattern);
 
                 default:
                     throw new InvalidOperationException("Unknown type");

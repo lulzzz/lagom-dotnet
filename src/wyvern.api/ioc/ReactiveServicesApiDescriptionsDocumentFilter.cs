@@ -36,6 +36,7 @@ namespace wyvern.api.ioc
                 foreach (var call in service.Descriptor.Calls)
                 {
                     var restCall = call.CallId as RestCallId;
+                    if (restCall == null) continue; // SocketCall, PathCall
 
                     var parameters = Regex.Matches(restCall.PathPattern, "\\{([^\\}]*)\\}")
                             .Select(match => match.Value.Substring(1, match.Value.Length - 2))
