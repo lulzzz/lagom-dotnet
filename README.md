@@ -40,6 +40,23 @@ Things that have been skipped, not fully implemented, or may need rework:
 ### Usage
 
 - Open http://localhost:5000/ and use the Swagger UI to make several POST / GET calls
-- To see websockets in action, open a connection to ws://localhost:5000/ws/hello
+- To see websockets in action, open a connection to ws://localhost:5000/ws/hello 
+  (sample code below)
 - To view the event journal, connect to the 'db' docker container and browse the db
 - To see the event bus, browse to http://localhost:8161/admin/queues.jsp using `admin:admin`
+
+#### Websocket example
+
+```
+var ws = new WebSocket("ws://localhost:5000/ws/hello");
+ws.onopen = function() {
+  console.log("connection open");
+};
+ws.onmessage = function (evt) { 
+  var received_msg = evt.data;
+  console.log(evt.data);
+};
+ws.onclose = function() { 
+  console.log("Connection closed"); 
+};
+```
