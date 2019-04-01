@@ -332,9 +332,37 @@ namespace wyvern.api.ioc
                     if (!context.WebSockets.IsWebSocketRequest)
                         return;
 
+                    object[] mrefParamArray = mrefParams.Select(x =>
+                    {
+                        var type = x.ParameterType;
+                        var name = x.Name;
+                        try
+                        {
+                            var data = context.GetRouteData();
+                            var val = data.Values[name].ToString();
+                            if (type == typeof(String))
+                                return val as object;
+                            if (type == typeof(Int64))
+                                return Int64.Parse(val) as object;
+                            if (type == typeof(Int32))
+                                return Int32.Parse(val) as object;
+                            if (type == typeof(Int16))
+                                return Int16.Parse(val) as object;
+
+                            throw new Exception("Unsupported path parameter type: " + type.Name);
+                        }
+                        catch (Exception)
+                        {
+                            throw new Exception($"Failed to match URL parameter [{name}] in path template.");
+                        }
+                    })
+                    .ToArray();
+
                     var socket = await context.WebSockets.AcceptWebSocketAsync();
+
                     // TODO: Params, other things
-                    var mres = mref.Invoke(service, new object[] { });
+
+                    var mres = mref.Invoke(service, mrefParamArray);
                     var cref = mres.GetType().GetMethod("Invoke");
                     var t = (Task)cref.Invoke(mres, new object[] { socket });
                     await t.ConfigureAwait(false);
