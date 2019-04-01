@@ -323,7 +323,7 @@ namespace wyvern.api.ioc
 
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path != path)
+                if (context.Request.Path != path) // TODO: this isn't matching with embedded path variables.
                 {
                     await next();
                 }
@@ -338,8 +338,8 @@ namespace wyvern.api.ioc
                         var name = x.Name;
                         try
                         {
-                            var data = context.GetRouteData();
-                            var val = data.Values[name].ToString();
+                            var data = context.Request.Query;
+                            var val = data[name].ToString();
                             if (type == typeof(String))
                                 return val as object;
                             if (type == typeof(Int64))
