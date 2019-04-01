@@ -16,6 +16,13 @@ namespace wyvern.api.abstractions
         Source<KeyValuePair<TE, Offset>, NotUsed> EventStream<TE>(AggregateEventTag instance, Offset fromOffset)
             where TE : AggregateEvent<TE>;
 
+        Source<KeyValuePair<TE, Offset>, NotUsed> EventStream<TE>(
+            AggregateEventTag aggregateTag,
+            string persistenceId,
+            Offset fromOffset = null,
+            Offset toOffset = null
+        ) where TE : AggregateEvent<TE>;
+
         IShardedEntityReference RefFor<T>(string entityId) where T : class;
         void Register<T, TC, TE, TS>()
             where T : ShardedEntity<TC, TE, TS>, new()

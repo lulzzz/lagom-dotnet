@@ -9,6 +9,7 @@ using Akka.Cluster.Sharding;
 using Akka.Persistence.Query;
 using Akka.Persistence.Query.Sql;
 using Akka.Persistence.SqlServer;
+using Akka.Persistence.SqlServer.Journal;
 using Akka.Streams.Dsl;
 using Akka.Streams.Util;
 using wyvern.api.abstractions;
@@ -48,6 +49,8 @@ namespace wyvern.api.@internal.sharding
 
             var persistence = SqlServerPersistence.Get(ActorSystem);
             EventsByTagQuery = PersistenceQuery.Get(ActorSystem)
+                .ReadJournalFor<SqlReadJournal>(SqlReadJournal.Identifier);
+            EventsByPersistenceIdQuery = PersistenceQuery.Get(ActorSystem)
                 .ReadJournalFor<SqlReadJournal>(SqlReadJournal.Identifier);
 
             //var journalConfig = persistence.DefaultJournalConfig;
@@ -124,6 +127,12 @@ namespace wyvern.api.@internal.sharding
         /// </summary>
         /// <value></value>
         private Option<IEventsByTagQuery> EventsByTagQuery { get; }
+
+        /// <summary>
+        /// Reference for extracting events by persistence id
+        /// </summary>
+        /// <value></value>
+        private Option<IEventsByPersistenceIdQuery> EventsByPersistenceIdQuery { get; }
 
         /// <summary>
         /// Registry of event types to entity names
@@ -209,6 +218,34 @@ namespace wyvern.api.@internal.sharding
             var startingOffset = MapStartingOffset(fromOffset);
 
             return queries.EventsByTag(tag, startingOffset)
+                .Select(env => KeyValuePair.Create(env.Event as E, env.Offset));
+        }
+
+        public Source<KeyValuePair<E, Offset>, NotUsed> EventStream<E>(
+            AggregateEventTag aggregateTag,
+            string persistenceId,
+            Offset fromOffset = null,
+            Offset toOffset = null
+        )
+            where E : AggregateEvent<E>
+        {
+            if (!EventsByPersistenceIdQuery.HasValue)
+                throw new InvalidOperationException(
+                    "No support for streaming events by persistence id"
+                );
+
+            var queries = EventsByPersistenceIdQuery.Value;
+            var tag = aggregateTag.Tag;
+
+            return queries.EventsByPersistenceId(
+                    persistenceId,
+                    fromOffset == null ?
+                        0L :
+                        ((Sequence)fromOffset).Value,
+                    toOffset == null ?
+                        Int64.MaxValue :
+                        ((Sequence)fromOffset).Value
+                )
                 .Select(env => KeyValuePair.Create(env.Event as E, env.Offset));
         }
 
