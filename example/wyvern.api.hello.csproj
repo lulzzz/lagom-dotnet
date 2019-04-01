@@ -10,6 +10,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="wyvern.api" Version="1.0.44"/>
+    <PackageReference Include="wyvern.api" Version="1.0.*"/>
   </ItemGroup>
 </Project>
