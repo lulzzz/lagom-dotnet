@@ -32,7 +32,7 @@ Things that have been skipped, not fully implemented, or may need rework:
 
 - Install dotnetcore 2.1
 - Install docker and docker-compose
-- Update `docker-compose` and `./docker/db/Dockerfile` with an appropriate password for SQL Server
+- Update `docker-compose.yml` and `./docker/db/Dockerfile` with an appropriate password for SQL Server
 - Run `docker-compose up db amqp` to start the SQL Server and ActiveMQ containers
 - Run `dotnet run` inside the `./example` folder
 
