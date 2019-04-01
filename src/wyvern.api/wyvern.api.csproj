@@ -9,7 +9,7 @@
     <None Remove="tests\**"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Akka.Visualize\Akka.Visualize.csproj"/>
+    <ProjectReference Include="..\wyvern.visualize\wyvern.visualize.csproj"/>
     <ProjectReference Include="..\wyvern.entity\wyvern.entity.csproj"/>
     <ProjectReference Include="..\wyvern.utils\wyvern.utils.csproj"/>
   </ItemGroup>

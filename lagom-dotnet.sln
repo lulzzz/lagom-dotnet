@@ -7,13 +7,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5660B2EB-58A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.api", "src\wyvern.api\wyvern.api.csproj", "{A129B56F-5BC3-42C6-891D-BF28A0A2D0BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.api.hello", "example\wyvern.api.hello.csproj", "{E0626A78-188B-41C6-9D76-CED125534483}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.entity", "src\wyvern.entity\wyvern.entity.csproj", "{051FDFA9-94B9-4F83-A868-355881E943D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.utils", "src\wyvern.utils\wyvern.utils.csproj", "{4C767A1C-5586-4B38-84E5-ABDEBD91FC7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Akka.Visualize", "src\Akka.Visualize\Akka.Visualize.csproj", "{63778211-33D6-442E-AEB5-AC6BFC8FA508}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.visualize", "src\wyvern.visualize\wyvern.visualize.csproj", "{63778211-33D6-442E-AEB5-AC6BFC8FA508}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,18 +35,6 @@ Global
 		{A129B56F-5BC3-42C6-891D-BF28A0A2D0BE}.Release|x64.Build.0 = Release|Any CPU
 		{A129B56F-5BC3-42C6-891D-BF28A0A2D0BE}.Release|x86.ActiveCfg = Release|Any CPU
 		{A129B56F-5BC3-42C6-891D-BF28A0A2D0BE}.Release|x86.Build.0 = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|x64.Build.0 = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Debug|x86.Build.0 = Debug|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|x64.ActiveCfg = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|x64.Build.0 = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|x86.ActiveCfg = Release|Any CPU
-		{E0626A78-188B-41C6-9D76-CED125534483}.Release|x86.Build.0 = Release|Any CPU
 		{051FDFA9-94B9-4F83-A868-355881E943D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{051FDFA9-94B9-4F83-A868-355881E943D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{051FDFA9-94B9-4F83-A868-355881E943D0}.Debug|x64.ActiveCfg = Debug|Any CPU

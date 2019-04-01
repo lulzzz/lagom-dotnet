@@ -7,8 +7,8 @@
     <ProjectGuid>{011DFD17-CE6F-42FA-AFD7-F6BC95CEF765}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Akka.Visualize</RootNamespace>
-    <AssemblyName>Akka.Visualize</AssemblyName>
+    <RootNamespace>wyvern.visualize</RootNamespace>
+    <AssemblyName>wyvern.visualize</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -74,7 +74,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

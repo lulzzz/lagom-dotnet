@@ -1,22 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\src\Akka.Visualize\Akka.Visualize.csproj" />
-    <ProjectReference Include="..\src\wyvern.api\wyvern.api.csproj" />
-    <ProjectReference Include="..\src\wyvern.entity\wyvern.entity.csproj" />
-    <ProjectReference Include="..\src\wyvern.utils\wyvern.utils.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Update="akka.conf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="wyvern.api" Version="1.0.44"/>
+  </ItemGroup>
 </Project>
