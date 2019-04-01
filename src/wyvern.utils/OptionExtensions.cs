@@ -13,7 +13,16 @@ namespace wyvern.utils
             return !o.HasValue || f(o.Value);
         }
 
-        public static void ForEach<T>(this Option<T> options, Action<T> func) { if (options.HasValue) func(options.Value); }
+        /// <summary>
+        /// Iterate on the option
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="func"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void ForEach<T>(this Option<T> options, Action<T> func)
+        {
+            if (options.HasValue) func(options.Value);
+        }
 
         /// <summary>
         /// Choose either the option value (if it has one) or the provided alternate
@@ -43,7 +52,10 @@ namespace wyvern.utils
         }
     }
 
-    public class OptionInitializers
+    /// <summary>
+    /// Option intializers
+    /// </summary>
+    public static class OptionInitializers
     {
         /// <summary>
         /// Create 'some' instance of T

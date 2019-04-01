@@ -40,6 +40,10 @@ namespace wyvern.api.@internal.surfaces
         /// <value></value>
         public ImmutableArray<AggregateEventTag> Tags { get; }
 
+        /// <summary>
+        /// Amqp sender link
+        /// </summary>
+        /// <value></value>
         SenderLink SenderLink { get; }
 
         public TaggedOffsetTopicProducer(

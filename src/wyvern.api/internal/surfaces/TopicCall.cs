@@ -6,7 +6,8 @@ namespace wyvern.api.@internal.surfaces
     {
         public TopicId TopicId { get; }
         public object TopicHolder { get; }
-        
+
+        // TODO: Important now to add the serializer in here..
         //MessageSerializer
         //Properties
 
@@ -15,7 +16,7 @@ namespace wyvern.api.@internal.surfaces
             (TopicId, TopicHolder) =
                 (topicId, topicHolder);
         }
-        
+
         public ITopicCall<M> WithTopicHolder(TopicHolder topicHolder)
         {
             return new TopicCall<M>(TopicId, topicHolder);

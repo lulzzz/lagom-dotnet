@@ -2,7 +2,7 @@ using System;
 
 namespace wyvern.utils
 {
-    [AttributeUsage(AttributeTargets.Class|AttributeTargets.Interface|AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property)]
     public class ImmutableAttribute : Attribute
     {
     }
@@ -10,12 +10,12 @@ namespace wyvern.utils
     [AttributeUsage(AttributeTargets.Property)]
     public class ImmutablePropertyAttribute : Attribute
     {
-        
+
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public  class NoSideEffectsAttribute : Attribute
+    public class NoSideEffectsAttribute : Attribute
     {
-        
+
     }
 }
