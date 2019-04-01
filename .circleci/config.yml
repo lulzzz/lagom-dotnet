@@ -8,6 +8,8 @@ jobs:
       - run: find .
       - run: dotnet restore
       - run: dotnet build
+      - run: dotnet pack src/wyvern.utils/wyvern.utils.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM
+      - run: dotnet nuget push src/wyvern.utils/bin/Debug/wyvern.utils.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
       - run: dotnet pack src/wyvern.entity/wyvern.entity.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM
       - run: dotnet nuget push src/wyvern.entity/bin/Debug/wyvern.entity.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
       - run: dotnet pack src/wyvern.api/wyvern.api.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM
