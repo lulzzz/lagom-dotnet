@@ -15,6 +15,7 @@ So far, the list of supported features are:
 - Journal and Snapshot persistence (SQL Server)
 - Read side implementation (SQL Server)
 - Topics of event streams (via AMQP)
+- WebSocket based event streams
 
 Additionally, the following features may be handy:
 
