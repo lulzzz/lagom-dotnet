@@ -17,7 +17,7 @@ namespace wyvern.api.@internal.readside.SqlServer
         private static Func<string, Func<SqlConnection>> ReadSideConnectionFactoryInitializer { get; }
             = (constr) => () => new SqlConnection(constr);
 
-        private Func<SqlConnection> ReadSideConnectionFactory { get; }
+        protected Func<SqlConnection> ReadSideConnectionFactory { get; }
         public string ReadSideId { get; }
         public Action<SqlConnection> GlobalPrepareCallback { get; }
         public Action<SqlConnection, AggregateEventTag> PrepareCallback { get; }
@@ -75,6 +75,20 @@ namespace wyvern.api.@internal.readside.SqlServer
             }
         }
 
+        public virtual void DbActionExecutor((TE, Offset) pair, Action<SqlConnection, TE, Offset> action)
+        {
+            try
+            {
+                using (var con = ReadSideConnectionFactory.Invoke())
+                {
+                    action(con, pair.Item1, pair.Item2);
+                }
+            } catch (Exception ex)
+            {
+                // TODO: 
+            }
+        }
+
         public override Flow<KeyValuePair<TE, Offset>, Done, NotUsed> Handle()
         {
             return Flow.FromFunction(
@@ -83,10 +97,7 @@ namespace wyvern.api.@internal.readside.SqlServer
                     {
                         if (EventHandlers.TryGetValue(pair.Key.GetType(), out var dbAction))
                         {
-                            using (var con = ReadSideConnectionFactory.Invoke())
-                            {
-                                dbAction(con, pair.Key, pair.Value);
-                            }
+                                DbActionExecutor((pair.Key, pair.Value), dbAction);
                         }
                         else
                         {
