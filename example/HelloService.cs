@@ -17,7 +17,9 @@ public abstract class HelloService : Service
 
     public abstract Func<string, Func<UpdateGreetingRequest, Task<string>>> UpdateGreeting { get; }
 
-    public abstract Func<Func<WebSocket, Task>> HelloStream { get; }
+    public abstract Func<string, long, long, Func<WebSocket, Task>> HelloNameStream { get; }
+
+    public abstract Func<long, Func<WebSocket, Task>> HelloStream { get; }
 
     public abstract Topic<HelloEvent> GreetingsTopic();
 
@@ -26,6 +28,7 @@ public abstract class HelloService : Service
             .WithCalls(
                 RestCall(Method.GET, "/api/hello/{name}", SayHello),
                 RestCall(Method.POST, "/api/hello/{name}", UpdateGreeting),
+                StreamCall("/ws/hello/name", HelloNameStream),
                 StreamCall("/ws/hello", HelloStream)
             )
             .WithTopics(

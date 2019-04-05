@@ -360,8 +360,6 @@ namespace wyvern.api.ioc
 
                     var socket = await context.WebSockets.AcceptWebSocketAsync();
 
-                    // TODO: Params, other things
-
                     var mres = mref.Invoke(service, mrefParamArray);
                     var cref = mres.GetType().GetMethod("Invoke");
                     var t = (Task)cref.Invoke(mres, new object[] { socket });

@@ -262,6 +262,28 @@ namespace wyvern.api
         /// <typeparam name="TRequest"></typeparam>
         /// <typeparam name="TResponse"></typeparam>
         /// <returns></returns>
+        protected static ICall<TRequest, TResponse> StreamCall<TA, TB, TC, TRequest, TResponse>(
+            string pathPattern,
+            Func<TA, TB, TC, Func<TRequest, TResponse>> methodRef)
+            where TRequest : class
+            where TResponse : class
+        {
+            return new Call<TRequest, TResponse>(
+                new StreamCallId(pathPattern),
+                methodRef.Method
+            );
+        }
+
+        /// <summary>
+        /// Stream call using websockets
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="pathPattern"></param>
+        /// <param name="Func<Func<TRequest"></param>
+        /// <param name="methodRef"></param>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <returns></returns>
         protected static ICall<TRequest, TResponse> StreamCall<TA, TRequest, TResponse>(
             string pathPattern,
             Func<TA, Func<TRequest, TResponse>> methodRef)

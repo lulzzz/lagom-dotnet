@@ -244,7 +244,7 @@ namespace wyvern.api.@internal.sharding
                         ((Sequence)fromOffset).Value,
                     toOffset == null ?
                         Int64.MaxValue :
-                        ((Sequence)fromOffset).Value
+                        ((Sequence)toOffset).Value
                 )
                 .Select(env => KeyValuePair.Create(env.Event as E, env.Offset));
         }
