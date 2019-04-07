@@ -341,27 +341,24 @@ namespace wyvern.api.@internal.sharding
             if (cluster.Settings.SeedNodes.IsEmpty && joinSelf)
                 cluster.Join(cluster.SelfAddress);
 
-
             CoordinatedShutdown.Get(actorSystem)
                 .AddTask(
                     CoordinatedShutdown.PhaseClusterShutdown,
                     "exit-when-downed",
-                    async () =>
+                    () =>
                     {
                         var reason = CoordinatedShutdown.Get(ActorSystem)
                                          .ShutdownReason == CoordinatedShutdown.ClusterDowningReason.Instance;
+
+                        actorSystem.Log.Info("Shutdown coordinated..");
+
                         if (exitWhenDowned && reason)
                         {
-                            var t = Task.Factory.StartNew(async () =>
-                            {
-                                Environment.Exit(-1);
-                                await Task.CompletedTask;
-                            });
-                            await t.ConfigureAwait(true);
-                            t.Start();
+                            actorSystem.Log.Info("Exiting");
+                            Environment.Exit(-1);
                         }
 
-                        return await Task.FromResult(Done.Instance);
+                        return Task.FromResult(Done.Instance);
                     }
                 );
         }
