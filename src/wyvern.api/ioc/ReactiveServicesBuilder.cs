@@ -46,8 +46,8 @@ namespace wyvern.api.ioc
                         configRoot,
                         (acc, cur) => acc.WithFallback(File.ReadAllText(cur.Item2))
                     );
-
-                var actorSystem = ActorSystem.Create("ClusterSystem", config);
+                var name = config.GetString("wyvern.cluster-system-name", "ClusterSystem");
+                var actorSystem = ActorSystem.Create(name, config);
                 services.AddSingleton<ActorSystem>(actorSystem);
                 foreach (var actorSystemDelegate in ActorSystemDelegates)
                     actorSystemDelegate.Invoke(actorSystem);
