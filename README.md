@@ -1,5 +1,5 @@
 # lagom-dotnet
-This is a .NET core port of Lightbend's Lagom framework using Akka.NET.  
+This is a .NET core port of Lightbend's Lagom framework using Akka.NET.
 
 ## CI/CD
 
@@ -29,6 +29,9 @@ Things that have been skipped, not fully implemented, or may need rework:
 
 ## Getting started with the example
 
+This set of steps walks you through how to get the 'Hello, World!'
+example up and running.
+
 ### Setup
 
 - Install dotnetcore 2.1
@@ -40,23 +43,25 @@ Things that have been skipped, not fully implemented, or may need rework:
 ### Usage
 
 - Open http://localhost:5000/ and use the Swagger UI to make several POST / GET calls
-- To see websockets in action, open a connection to ws://localhost:5000/ws/hello 
+- To see websockets in action, open a connection to ws://localhost:5000/ws/hello
   (sample code below)
-- To view the event journal, connect to the 'db' docker container and browse the db
-- To see the event bus, browse to http://localhost:8161/admin/queues.jsp using `admin:admin`
+- To view the event journal, connect to the 'db' docker container and browse the dbo.EventJournal table
+- To see the event bus, browse to http://localhost:8161/admin/queues.jsp using `admin:admin` and click on Queues and/or Topics to view what's been published
 
 #### Websocket example
+
+To be used for the example above.
 
 ```
 var ws = new WebSocket("ws://localhost:5000/ws/hello");
 ws.onopen = function() {
   console.log("connection open");
 };
-ws.onmessage = function (evt) { 
+ws.onmessage = function (evt) {
   var received_msg = evt.data;
   console.log(evt.data);
 };
-ws.onclose = function() { 
-  console.log("Connection closed"); 
+ws.onclose = function() {
+  console.log("Connection closed");
 };
 ```
