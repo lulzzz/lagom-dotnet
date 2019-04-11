@@ -74,7 +74,7 @@ namespace wyvern.api.@internal.surfaces
         /// <returns></returns>
         public async Task<IOffsetDao> Prepare(string readSideId, string tag)
         {
-            using (var con = SqlProvider.Invoke())
+            using(var con = SqlProvider.Invoke())
             {
                 var query = $@"
                     if not exists (select * from sysobjects where name='{Config.TableName}' and xtype='U')
@@ -97,7 +97,7 @@ namespace wyvern.api.@internal.surfaces
             }
             else
             {
-                using (var con = SqlProvider.Invoke())
+                using(var con = SqlProvider.Invoke())
                 {
                     var res = con.Execute($@"
                         insert into [{Config.TableName}] (
@@ -125,14 +125,14 @@ namespace wyvern.api.@internal.surfaces
 
         public Task<Done> UpdateOffset(string readSideId, string tag, Offset offset)
         {
-            using (var con = SqlProvider.Invoke())
+            using(var con = SqlProvider.Invoke())
             {
                 var res = con.Execute($"update {Config.TableName} set {Config.SequenceOffsetColumnName} = @offset where {Config.IdColumnName} = @readSideId and {Config.TagColumnName} = @tag",
                     new
                     {
-                        offset = ((Sequence)offset).Value,
-                        readSideId,
-                        tag
+                        offset = ((Sequence) offset).Value,
+                            readSideId,
+                            tag
                     });
                 if (res != 1)
                 {
@@ -151,7 +151,7 @@ namespace wyvern.api.@internal.surfaces
         /// <returns></returns>
         Task<OffsetRow> GetOffset(string readSideId, string tag)
         {
-            using (var con = SqlProvider.Invoke())
+            using(var con = SqlProvider.Invoke())
             {
                 var row = con.QueryFirstOrDefault<OffsetRow>($@"
                     select

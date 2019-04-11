@@ -16,7 +16,5 @@ namespace wyvern.api.abstractions
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface ICall<in TRequest, out TResponse> : ICall
-    {
-    }
+    public interface ICall<in TRequest, out TResponse> : ICall { }
 }

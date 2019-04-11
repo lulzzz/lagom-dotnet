@@ -1,11 +1,12 @@
 using System;
 using Akka.Actor;
 using Akka.Event;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace wyvern.utils
 {
+
     public class DotNetCoreLogger : ReceiveActor, ILogReceive
     {
         ILogger<DotNetCoreLogger> Logger { get; }

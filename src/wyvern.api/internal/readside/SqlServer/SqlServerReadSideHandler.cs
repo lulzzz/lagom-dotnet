@@ -83,9 +83,10 @@ namespace wyvern.api.@internal.readside.SqlServer
                 {
                     action(con, pair.Item1, pair.Item2);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                // TODO: 
+                // TODO:
             }
         }
 
@@ -97,7 +98,7 @@ namespace wyvern.api.@internal.readside.SqlServer
                     {
                         if (EventHandlers.TryGetValue(pair.Key.GetType(), out var dbAction))
                         {
-                                DbActionExecutor((pair.Key, pair.Value), dbAction);
+                            DbActionExecutor((pair.Key, pair.Value), dbAction);
                         }
                         else
                         {

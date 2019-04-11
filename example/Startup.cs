@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using wyvern.api;
 using wyvern.api.ioc;
+using wyvern.utils;
 using static wyvern.api.ioc.ServiceExtensions;
 
 public class Startup
@@ -19,7 +20,11 @@ public class Startup
         });
 
         services.AddReactiveServices(x =>
+
             {
+                /* Load the serializer for all topics */
+                x.WithTopicSerializer<DefaultSerializer>();
+
                 /* Register all the services here */
                 x.AddReactiveService<HelloService, HelloServiceImpl>();
 

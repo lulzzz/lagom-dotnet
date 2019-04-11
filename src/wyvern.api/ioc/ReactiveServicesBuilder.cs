@@ -7,13 +7,16 @@ using Akka.Actor;
 using Akka.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using wyvern.api.abstractions;
+using wyvern.utils;
 
 namespace wyvern.api.ioc
 {
     public class ReactiveServicesBuilder : IReactiveServicesBuilder
     {
+        static Func<ISerializer> DefaultSerializerFactory = () => new DefaultSerializer();
+
         private List<Action<IServiceCollection>> ServiceDelegates { get; } = new List<Action<IServiceCollection>>();
-        private List<(Type, Type)> TypeMapping { get; } = new List<(Type, Type)>();
+        private List < (Type, Type) > TypeMapping { get; } = new List < (Type, Type) > ();
         private List<Action<ActorSystem>> ActorSystemDelegates { get; } = new List<Action<ActorSystem>>();
 
         public ReactiveServicesBuilder()
@@ -35,10 +38,11 @@ namespace wyvern.api.ioc
 
                 // Load Fallback sources (environment first, then base config)
                 var environment = Environment.GetEnvironmentVariable("AKKA_ENVIRONMENT");
-                var config = (new[] {
-                        (1, "akka.conf"),
-                        (2, "akka.overrides.conf"),
-                        (3, $"akka.{environment}.conf")
+                var config = (new []
+                    {
+                        (1, "akka.conf"), // Last fallback
+                        (2, "akka.overrides.conf"), // First fallback
+                        (3, $"akka.{environment}.conf") // First preference
                     })
                     .Where(t => (File.Exists(t.Item2)))
                     .OrderByDescending(t => t.Item1)
@@ -55,8 +59,8 @@ namespace wyvern.api.ioc
         }
 
         public ReactiveServicesBuilder AddReactiveService<T, TI>()
-            where TI : T
-            where T : Service
+        where TI : T
+        where T : Service
         {
             ServiceDelegates.Add(x => x.AddTransient<T, TI>());
             TypeMapping.Add((typeof(T), typeof(TI)));
@@ -66,6 +70,14 @@ namespace wyvern.api.ioc
         public ReactiveServicesBuilder AddActorSystemDelegate(Action<ActorSystem> actorSystemDelegate)
         {
             ActorSystemDelegates.Add(actorSystemDelegate);
+            return this;
+        }
+
+        public ReactiveServicesBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null)
+        where T : ISerializer, new()
+        {
+            var factory = serializerFactory ?? DefaultSerializerFactory;
+            ServiceDelegates.Add(x => x.AddTransient<ISerializer>(y => serializerFactory.Invoke()));
             return this;
         }
 

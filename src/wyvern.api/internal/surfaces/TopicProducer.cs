@@ -15,19 +15,18 @@ namespace wyvern.api.@internal.surfaces
             AggregateEventTag.Of<SingletonEvent>("singleton")
         );
 
-        public static Topic<TMessage> SingleStreamWithOffset<TMessage>(Func<Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStream)
-            where TMessage : class
+        public static Topic<TEvent> SingleStreamWithOffset<TEvent>(Func<Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStream)
+        where TEvent : AbstractEvent
         {
-            return TaggedStreamWithOffset<TMessage>(SingletonTag)
-                ((tags, offset) => eventStream.Invoke(offset)
-            );
+            return TaggedStreamWithOffset<TEvent>(SingletonTag)
+                ((tags, offset) => eventStream.Invoke(offset));
         }
 
-        public static Func<Func<IAggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>>, Topic<TMessage>> TaggedStreamWithOffset<TMessage>(ImmutableArray<AggregateEventTag> tags)
-            where TMessage : class
+        public static Func<Func<IAggregateEventTag, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>>, Topic<TEvent>> TaggedStreamWithOffset<TEvent>(ImmutableArray<AggregateEventTag> tags)
+        where TEvent : AbstractEvent
         {
             return eventStream =>
-                new TaggedOffsetTopicProducer<TMessage>(
+                new TaggedOffsetTopicProducer<TEvent>(
                     tags, eventStream
                 );
         }

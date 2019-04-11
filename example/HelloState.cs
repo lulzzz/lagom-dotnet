@@ -18,13 +18,10 @@ public class HelloState : AbstractState
         Created = created;
     }
 
-    public HelloState WithCreated()
-        => new HelloState(Name, Greeting, true);
+    public HelloState WithCreated() => new HelloState(Name, Greeting, true);
 
-    public HelloState WithName(string name)
-        => new HelloState(name, Greeting, Created);
+    public HelloState WithName(string name) => new HelloState(name, Greeting, Created);
 
-    public HelloState WithGreeting(string greeting)
-        => new HelloState(Name, greeting, Created);
+    public HelloState WithGreeting(string greeting) => new HelloState(Name, greeting, Created);
 
 }

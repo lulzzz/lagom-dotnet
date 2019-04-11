@@ -25,51 +25,54 @@ namespace wyvern.api.@internal.surfaces
     /// Topic producer
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public sealed class TaggedOffsetTopicProducer<TMessage> : InternalTopic<TMessage>, ITaggedOffsetTopicProducer<TMessage>
-        where TMessage : class
-    {
-        /// <summary>
-        /// Event source factory
-        /// </summary>
-        /// <value></value>
-        public Func<AggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> ReadSideStream { get; }
-
-        /// <summary>
-        /// Set of tags
-        /// </summary>
-        /// <value></value>
-        public ImmutableArray<AggregateEventTag> Tags { get; }
-
-        /// <summary>
-        /// Amqp sender link
-        /// </summary>
-        /// <value></value>
-        SenderLink SenderLink { get; }
-
-        public TaggedOffsetTopicProducer(
-            ImmutableArray<AggregateEventTag> tags,
-            Func<AggregateEventTag, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> readSideStream)
+    public sealed class TaggedOffsetTopicProducer<TEvent>:
+        InternalTopic<TEvent>,
+        ITaggedOffsetTopicProducer<TEvent>
+        where TEvent : AbstractEvent
         {
-            (Tags, ReadSideStream) = (tags, readSideStream);
+            /// <summary>
+            /// Event source factory
+            /// </summary>
+            /// <value></value>
+            public Func<AggregateEventTag, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> ReadSideStream { get; }
+
+            /// <summary>
+            /// Set of tags
+            /// </summary>
+            /// <value></value>
+            public ImmutableArray<AggregateEventTag> Tags { get; }
+
+            /// <summary>
+            /// Amqp sender link
+            /// </summary>
+            /// <value></value>
+            SenderLink SenderLink { get; }
+
+            public TaggedOffsetTopicProducer(
+                ImmutableArray<AggregateEventTag> tags,
+                Func<AggregateEventTag, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> readSideStream)
+            {
+                (Tags, ReadSideStream) = (tags, readSideStream);
+            }
+
+            public void Init(ActorSystem sys, string topicId, ISerializer serializer)
+            {
+                var config = sys.Settings.Config;
+                foreach (var tag in Tags)
+                    Producer.StartTaggedOffsetProducer<TEvent>(
+                        sys,
+                        Tags,
+                        new TopicConfig(config),
+                        topicId,
+                        (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
+                        serializer,
+                        new SqlServerOffsetStore(
+                            new SqlServerProvider(config).GetconnectionProvider(),
+                            new OffsetStoreConfiguration(sys.Settings.Config)
+                        )
+                    );
+
+            }
+
         }
-
-        public void Init(ActorSystem sys, string topicId)
-        {
-            var config = sys.Settings.Config;
-            foreach (var tag in Tags)
-                Producer.StartTaggedOffsetProducer<TMessage>(
-                    sys,
-                    Tags,
-                    new TopicConfig(config),
-                    topicId,
-                    (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
-                    new SqlServerOffsetStore(
-                        new SqlServerProvider(config).GetconnectionProvider(),
-                        new OffsetStoreConfiguration(sys.Settings.Config)
-                    )
-                );
-
-        }
-
-    }
 }

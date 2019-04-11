@@ -20,27 +20,31 @@ public class HelloServiceImpl : HelloService
 
     ILogger<HelloServiceImpl> Logger { get; }
 
+    ISerializer Serializer { get; }
+
     ActorSystem ActorSystem { get; }
 
     public HelloServiceImpl(
-            IShardedEntityRegistry registry,
-            ILogger<HelloServiceImpl> logger,
-            ActorSystem actorSystem
-        )
+        IShardedEntityRegistry registry,
+        ILogger<HelloServiceImpl> logger,
+        ISerializer serializer,
+        ActorSystem actorSystem
+    )
     {
         Registry = registry;
         Logger = logger;
         ActorSystem = actorSystem;
+        Serializer = serializer;
     }
 
     public override Func<string, Func<NotUsed, Task<string>>> SayHello =>
-            name =>
-            async _ =>
-            {
-                var entity = Registry.RefFor<HelloEntity>(name);
-                var response = await entity.Ask<string>(new SayHelloCommand(name));
-                return response as string;
-            };
+        name =>
+        async _ =>
+        {
+            var entity = Registry.RefFor<HelloEntity>(name);
+            var response = await entity.Ask<string>(new SayHelloCommand(name));
+            return response as string;
+        };
 
     public override Func<string, Func<UpdateGreetingRequest, Task<string>>> UpdateGreeting =>
         name =>
@@ -62,7 +66,7 @@ public class HelloServiceImpl : HelloService
                     id, st, ed,
                     (env) =>
                     {
-                        var (@event, offset) = env;
+                        var(@event, offset) = env;
                         var message = @event;
                         var obj = Newtonsoft.Json.JsonConvert.SerializeObject(message);
                         var msg = Encoding.ASCII.GetBytes(obj);
@@ -84,7 +88,7 @@ public class HelloServiceImpl : HelloService
                     st,
                     (env) =>
                     {
-                        var (@event, offset) = env;
+                        var(@event, offset) = env;
                         var message = @event;
                         var obj = Newtonsoft.Json.JsonConvert.SerializeObject(message);
                         var msg = Encoding.ASCII.GetBytes(obj);
@@ -101,7 +105,7 @@ public class HelloServiceImpl : HelloService
             )
             .Select(envelope =>
             {
-                var (@event, offset) = envelope;
+                var(@event, offset) = envelope;
                 var message = @event;
                 return KeyValuePair.Create(message, offset);
             })

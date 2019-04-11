@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using wyvern.api.abstractions;
 using wyvern.api.@internal.readside;
 using wyvern.api.@internal.surfaces;
+using wyvern.entity.@event;
 using wyvern.entity.@event.aggregate;
 using wyvern.utils;
 using static Producer;
@@ -32,18 +33,20 @@ internal static partial class Producer
     /// </summary>
     public static class TaggedOffsetProducerActor
     {
-        public static Props Props<TMessage>(
-                            TopicConfig topicConfig,
-                            string topicId,
-                            Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
-                            IOffsetStore offsetStore
-                        )
+        public static Props Props<TEvent>(
+            TopicConfig topicConfig,
+            string topicId,
+            Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+            ISerializer serializer,
+            IOffsetStore offsetStore
+        ) where TEvent : AbstractEvent
         {
             return Akka.Actor.Props.Create(() =>
-                new TaggedOffsetProducerActor<TMessage>(
+                new TaggedOffsetProducerActor<TEvent>(
                     topicConfig,
                     topicId,
                     eventStreamFactory,
+                    serializer,
                     offsetStore
                 )
             );
@@ -61,18 +64,19 @@ internal static partial class Producer
     /// <param name="eventStreamFactory"></param>
     /// <param name="offsetStore"></param>
     /// <typeparam name="TMessage"></typeparam>
-    public static void StartTaggedOffsetProducer<TMessage>(
-            ActorSystem system,
-            ImmutableArray<AggregateEventTag> tags,
-            TopicConfig topicConfig,
-            string topicId,
-            Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
-            IOffsetStore offsetStore
-        )
+    public static void StartTaggedOffsetProducer<TEvent>(
+        ActorSystem system,
+        ImmutableArray<AggregateEventTag> tags,
+        TopicConfig topicConfig,
+        string topicId,
+        Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+        ISerializer serializer,
+        IOffsetStore offsetStore
+    ) where TEvent : AbstractEvent
     {
         var producerConfig = new ProducerConfig(system.Settings.Config);
-        var publisherProps = TaggedOffsetProducerActor.Props<TMessage>(
-            topicConfig, topicId, eventStreamFactory, offsetStore
+        var publisherProps = TaggedOffsetProducerActor.Props<TEvent>(
+            topicConfig, topicId, eventStreamFactory, serializer, offsetStore
         );
 
         var backoffPublisherProps = BackoffSupervisor.PropsWithSupervisorStrategy(
@@ -104,7 +108,8 @@ internal static partial class Producer
     /// Tagged offset producer actor
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public class TaggedOffsetProducerActor<TMessage> : ReceiveActor
+    public class TaggedOffsetProducerActor<TEvent> : ReceiveActor
+    where TEvent : AbstractEvent
     {
         /// <summary>
         /// Coordinated shutdown
@@ -127,7 +132,13 @@ internal static partial class Producer
         /// Event stream creation
         /// </summary>
         /// <value></value>
-        Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> EventStreamFactory { get; }
+        Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> EventStreamFactory { get; }
+
+        /// <summary>
+        /// Serializer to use
+        /// </summary>
+        /// <value></value>
+        ISerializer Serializer { get; }
 
         /// <summary>
         /// Offset storage mechanism
@@ -152,7 +163,8 @@ internal static partial class Producer
         public TaggedOffsetProducerActor(
             TopicConfig topicConfig,
             string topicId,
-            Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
+            Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+            ISerializer serializer,
             IOffsetStore offsetStore
         )
         {
@@ -160,6 +172,7 @@ internal static partial class Producer
             TopicId = topicId;
             EventStreamFactory = eventStreamFactory;
             OffsetStore = offsetStore;
+            Serializer = serializer;
 
             Connection = new Connection(
                 new Amqp.Address(
@@ -195,7 +208,8 @@ internal static partial class Producer
         private void GeneralHandler()
         {
             Receive<EnsureActive>(ensureActive => { });
-            Receive<Status.Failure>(e => throw e.Cause);
+            Receive<Status.Failure>(e =>
+                throw e.Cause);
         }
 
         /// <summary>
@@ -205,6 +219,7 @@ internal static partial class Producer
         private void Initializing(string entityId)
         {
             GeneralHandler();
+
             var endpoint = TopicConfig.Host;
             var entity = TopicConfig.Entity;
 
@@ -247,7 +262,7 @@ internal static partial class Producer
         public void Run(string tag, TopicConfig config, IOffsetDao offsetDao)
         {
             EventStreamFactory.Invoke(tag, offsetDao.LoadedOffset)
-                .ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
+                .ViaMaterialized(KillSwitches.Single<KeyValuePair<TEvent, Offset>>(), Keep.Right)
                 .Via(EventsPublisherFlow(config, offsetDao))
                 .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
                 .Run(Context.Materializer());
@@ -261,31 +276,31 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="offsetDao"></param>
         /// <returns></returns>
-        private IGraph<FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>, NotUsed> EventsPublisherFlow(TopicConfig config, IOffsetDao offsetDao)
+        private IGraph<FlowShape<KeyValuePair<TEvent, Offset>, Task<Done>>, NotUsed > EventsPublisherFlow(TopicConfig config, IOffsetDao offsetDao)
         {
             return Flow.FromGraph(
                 GraphDsl.Create(
                     /* Publish */
                     Flow.FromFunction(
-                        (TMessage m) => ServiceBusFlowPublisher(config, m)
+                        (TEvent m) => ServiceBusFlowPublisher(config, m)
                     ),
                     /* Unzip/Zip Flow */
                     (builder, shape) =>
                     {
-                        var unzip = builder.Add(new UnZip<TMessage, Offset>());
+                        var unzip = builder.Add(new UnZip<TEvent, Offset>());
                         var zip = builder.Add(new Zip<Task<Done>, Offset>());
                         var offsetCommitter = builder.Add(
                             Flow.FromFunction(
-                                    (Tuple<Task<Done>, Offset> x) =>
-                                        offsetDao.SaveOffset(x.Item2)
-                                )
-                            );
+                                (Tuple<Task<Done>, Offset> x) =>
+                                offsetDao.SaveOffset(x.Item2)
+                            )
+                        );
 
                         builder.From(unzip.Out0).Via(shape).To(zip.In0);
                         builder.From(unzip.Out1).To(zip.In1);
                         builder.From(zip.Out).To(offsetCommitter.Inlet);
 
-                        return new FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>(
+                        return new FlowShape<KeyValuePair<TEvent, Offset>, Task<Done>>(
                             unzip.In, offsetCommitter.Outlet
                         );
                     }
@@ -299,28 +314,23 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="m"></param>
         /// <returns></returns>
-        private Task<Done> ServiceBusFlowPublisher(TopicConfig config, TMessage m)
+        private Task<Done> ServiceBusFlowPublisher(TopicConfig config, TEvent m)
         {
             try
             {
                 var session = new Session(Connection);
                 var senderLink = new SenderLink(session, "session", config.Entity.Value);
 
-                var bf = new BinaryFormatter();
-                using (var ms = new MemoryStream())
-                {
-                    var obj = JsonConvert.SerializeObject(m);
-                    bf.Serialize(ms, obj);
+                var binary = Serializer.Serialize(m);
+                // TODO: Property extractor.
 
-                    senderLink.Send(new Message
+                senderLink.Send(new Message
+                {
+                    BodySection = new Data
                     {
-                        BodySection = new Data
-                        {
-                            // TODO: Incorporate custom serialization
-                            Binary = ms.ToArray()
-                        }
-                    });
-                }
+                        Binary = binary
+                    }
+                });
 
                 senderLink.Close();
                 session.Close();
@@ -328,12 +338,14 @@ internal static partial class Producer
             catch (Exception ex)
             {
                 Context.System.Log.Error(ex, ex.Message);
+                // TODO: need to throw here, but actor needs to
+                // implement a catchable
+                // throw;
             }
 
             return Task.FromResult(Done.Instance);
         }
 
     }
-
 
 }
