@@ -13,7 +13,7 @@ namespace wyvern.api.ioc
 {
     public class ReactiveServicesBuilder : IReactiveServicesBuilder
     {
-        static Func<ISerializer> DefaultSerializerFactory = () => new DefaultSerializer();
+        static Func<ISerializer> SerializerFactory = () => new DefaultSerializer();
 
         private List<Action<IServiceCollection>> ServiceDelegates { get; } = new List<Action<IServiceCollection>>();
         private List < (Type, Type) > TypeMapping { get; } = new List < (Type, Type) > ();
@@ -76,13 +76,14 @@ namespace wyvern.api.ioc
         public ReactiveServicesBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null)
         where T : ISerializer, new()
         {
-            var factory = serializerFactory ?? DefaultSerializerFactory;
-            ServiceDelegates.Add(x => x.AddTransient<ISerializer>(y => serializerFactory.Invoke()));
+            if (serializerFactory != null)
+                SerializerFactory = serializerFactory;
             return this;
         }
 
         internal IReactiveServices Build(IServiceCollection services)
         {
+            ServiceDelegates.Add(x => x.AddTransient<ISerializer>(y => SerializerFactory.Invoke()));
             foreach (var serviceDelegate in ServiceDelegates)
                 serviceDelegate.Invoke(services);
             return new ReactiveServices(TypeMapping);
