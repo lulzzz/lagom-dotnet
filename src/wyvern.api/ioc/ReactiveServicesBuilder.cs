@@ -83,7 +83,7 @@ namespace wyvern.api.ioc
         }
 
         public ReactiveServicesBuilder WithMessagePropertyExtractor<T>(Func<IMessagePropertyExtractor> extractorFactory = null)
-        where T : ISerializer, new()
+        where T : IMessagePropertyExtractor, new()
         {
             if (ExtractorFactory != null)
                 ExtractorFactory = extractorFactory;
