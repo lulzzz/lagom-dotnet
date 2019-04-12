@@ -38,7 +38,7 @@ internal static partial class Producer
             string topicId,
             Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
             ISerializer serializer,
-            IMessageExtractor extractor,
+            IMessagePropertyExtractor extractor,
             IOffsetStore offsetStore
         ) where TEvent : AbstractEvent
         {
@@ -73,12 +73,13 @@ internal static partial class Producer
         string topicId,
         Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
         ISerializer serializer,
+        IMessagePropertyExtractor extractor,
         IOffsetStore offsetStore
     ) where TEvent : AbstractEvent
     {
         var producerConfig = new ProducerConfig(system.Settings.Config);
         var publisherProps = TaggedOffsetProducerActor.Props<TEvent>(
-            topicConfig, topicId, eventStreamFactory, serializer, offsetStore
+            topicConfig, topicId, eventStreamFactory, serializer, extractor, offsetStore
         );
 
         var backoffPublisherProps = BackoffSupervisor.PropsWithSupervisorStrategy(

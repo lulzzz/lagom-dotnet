@@ -115,6 +115,7 @@ namespace wyvern.api.ioc
                             topic,
                             service,
                             services.GetService<ISerializer>(),
+                            services.GetService<IMessagePropertyExtractor>(),
                             app.ApplicationServices.GetService<ActorSystem>()
                         );
                 });
@@ -203,7 +204,7 @@ namespace wyvern.api.ioc
             });
         }
 
-        private static void RegisterTopic(object t, Service s, ISerializer serializer, ActorSystem sys)
+        private static void RegisterTopic(object t, Service s, ISerializer serializer, IMessagePropertyExtractor extractor, ActorSystem sys)
         {
             var topicCall = (ITopicCall) t;
             if (!(topicCall.TopicHolder is MethodTopicHolder))
@@ -216,7 +217,7 @@ namespace wyvern.api.ioc
             typeof(ITaggedOffsetTopicProducer<>)
             .MakeGenericType(producer.GetType().GetGenericArguments() [0])
                 .GetMethod("Init")
-                .Invoke(producer, new object[] { sys, topicCall.TopicId.Name, serializer });
+                .Invoke(producer, new object[] { sys, topicCall.TopicId.Name, serializer, extractor });
 
         }
 

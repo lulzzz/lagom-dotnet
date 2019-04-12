@@ -55,7 +55,7 @@ namespace wyvern.api.@internal.surfaces
                 (Tags, ReadSideStream) = (tags, readSideStream);
             }
 
-            public void Init(ActorSystem sys, string topicId, ISerializer serializer)
+            public void Init(ActorSystem sys, string topicId, ISerializer serializer, IMessagePropertyExtractor extractor)
             {
                 var config = sys.Settings.Config;
                 foreach (var tag in Tags)
@@ -65,6 +65,7 @@ namespace wyvern.api.@internal.surfaces
                         new TopicConfig(config),
                         topicId,
                         (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
+                        extractor,
                         serializer,
                         new SqlServerOffsetStore(
                             new SqlServerProvider(config).GetconnectionProvider(),
