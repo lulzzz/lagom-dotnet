@@ -16,6 +16,7 @@ So far, the list of supported features are:
 - Read side implementation (SQL Server)
 - Topics of event streams (via AMQP)
 - WebSocket based event streams
+- Support for custom message serialization in topics
 
 Additionally, the following features may be handy:
 
@@ -24,7 +25,6 @@ Additionally, the following features may be handy:
 Things that have been skipped, not fully implemented, or may need rework:
 
 - Entities can be partitioned, but Topics and Read Side do not support partitioning yet
-- Serialization of messages is static
 - Limited test coverage
 
 ## Getting started with the example
