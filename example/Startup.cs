@@ -22,8 +22,10 @@ public class Startup
         services.AddReactiveServices(x =>
 
             {
-                /* Load the serializer for all topics */
-                x.WithTopicSerializer<DefaultSerializer>();
+                // Note: these don't really need to be called, they are the default
+                //       I've only added them here as an example
+                //x.WithTopicSerializer<DefaultSerializer>();
+                //x.WithMessagePropertyExtractor<DefaultExtractor>();
 
                 /* Register all the services here */
                 x.AddReactiveService<HelloService, HelloServiceImpl>();

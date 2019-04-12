@@ -14,6 +14,7 @@ namespace wyvern.api.ioc
     public class ReactiveServicesBuilder : IReactiveServicesBuilder
     {
         static Func<ISerializer> SerializerFactory = () => new DefaultSerializer();
+        static Func<IMessagePropertyExtractor> ExtractorFactory = () => new DefaultExtractor();
 
         private List<Action<IServiceCollection>> ServiceDelegates { get; } = new List<Action<IServiceCollection>>();
         private List < (Type, Type) > TypeMapping { get; } = new List < (Type, Type) > ();
@@ -78,6 +79,14 @@ namespace wyvern.api.ioc
         {
             if (serializerFactory != null)
                 SerializerFactory = serializerFactory;
+            return this;
+        }
+
+        public ReactiveServicesBuilder WithMessagePropertyExtractor<T>(Func<IMessagePropertyExtractor> extractorFactory = null)
+        where T : ISerializer, new()
+        {
+            if (ExtractorFactory != null)
+                ExtractorFactory = extractorFactory;
             return this;
         }
 

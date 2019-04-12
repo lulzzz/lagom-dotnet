@@ -38,6 +38,7 @@ internal static partial class Producer
             string topicId,
             Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
             ISerializer serializer,
+            IMessageExtractor extractor,
             IOffsetStore offsetStore
         ) where TEvent : AbstractEvent
         {
@@ -47,6 +48,7 @@ internal static partial class Producer
                     topicId,
                     eventStreamFactory,
                     serializer,
+                    extractor,
                     offsetStore
                 )
             );
@@ -141,6 +143,12 @@ internal static partial class Producer
         ISerializer Serializer { get; }
 
         /// <summary>
+        /// Extractor for message properties
+        /// </summary>
+        /// <value></value>
+        IMessagePropertyExtractor Extractor { get; }
+
+        /// <summary>
         /// Offset storage mechanism
         /// </summary>
         /// <value></value>
@@ -165,6 +173,7 @@ internal static partial class Producer
             string topicId,
             Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
             ISerializer serializer,
+            IMessagePropertyExtractor extractor,
             IOffsetStore offsetStore
         )
         {
@@ -173,7 +182,7 @@ internal static partial class Producer
             EventStreamFactory = eventStreamFactory;
             OffsetStore = offsetStore;
             Serializer = serializer;
-
+            Extractor = extractor;
             Connection = new Connection(
                 new Amqp.Address(
                     TopicConfig.Host.Value,
@@ -322,14 +331,19 @@ internal static partial class Producer
                 var senderLink = new SenderLink(session, "session", config.Entity.Value);
 
                 var binary = Serializer.Serialize(m);
-                // TODO: Property extractor.
+                var props = Extractor.Extract(m);
+
+                var appProps = new Amqp.Framing.ApplicationProperties();
+                foreach (var prop in props)
+                    appProps[prop.Key] = prop.Value;
 
                 senderLink.Send(new Message
                 {
                     BodySection = new Data
-                    {
-                        Binary = binary
-                    }
+                        {
+                            Binary = binary
+                        },
+                        ApplicationProperties = appProps
                 });
 
                 senderLink.Close();
@@ -338,9 +352,7 @@ internal static partial class Producer
             catch (Exception ex)
             {
                 Context.System.Log.Error(ex, ex.Message);
-                // TODO: need to throw here, but actor needs to
-                // implement a catchable
-                // throw;
+                throw;
             }
 
             return Task.FromResult(Done.Instance);
