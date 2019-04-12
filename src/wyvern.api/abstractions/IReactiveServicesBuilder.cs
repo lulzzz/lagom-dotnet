@@ -8,16 +8,17 @@ namespace wyvern.api.abstractions
     public interface IReactiveServiceBuilder
     {
         IReactiveServiceBuilder AddShardedEntity<T, TC, TE, TS>()
-            where T : ShardedEntity<TC, TE, TS>, new()
-            where TC : AbstractCommand
-            where TE : AbstractEvent
-            where TS : AbstractState;
+        where T : ShardedEntity<TC, TE, TS>, new()
+        where TC : AbstractCommand
+        where TE : AbstractEvent
+        where TS : AbstractState;
+        IReactiveServiceBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null);
     }
 
     public interface IReactiveServicesBuilder
     {
         ReactiveServicesBuilder AddReactiveService<T, TI>()
-            where TI : T
-            where T : Service;
+        where TI : T
+        where T : Service;
     }
 }
