@@ -65,8 +65,8 @@ namespace wyvern.api.@internal.surfaces
                         new TopicConfig(config),
                         topicId,
                         (string entityId, Offset o) => ReadSideStream.Invoke(tag, o),
-                        extractor,
                         serializer,
+                        extractor,
                         new SqlServerOffsetStore(
                             new SqlServerProvider(config).GetconnectionProvider(),
                             new OffsetStoreConfiguration(sys.Settings.Config)

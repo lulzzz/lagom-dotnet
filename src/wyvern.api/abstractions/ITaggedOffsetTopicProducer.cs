@@ -16,6 +16,6 @@ namespace wyvern.api.abstractions
     {
         ImmutableArray<AggregateEventTag> Tags { get; }
         Func<AggregateEventTag, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> ReadSideStream { get; }
-        void Init(ActorSystem sys, string topicId, ISerializer serializer);
+        void Init(ActorSystem sys, string topicId, ISerializer serializer, IMessagePropertyExtractor extractor);
     }
 }
