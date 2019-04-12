@@ -12,7 +12,6 @@ namespace wyvern.api.abstractions
         where TC : AbstractCommand
         where TE : AbstractEvent
         where TS : AbstractState;
-        IReactiveServiceBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null);
     }
 
     public interface IReactiveServicesBuilder
