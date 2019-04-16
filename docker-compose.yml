@@ -36,20 +36,4 @@ services:
       test: curl --fail http://seed:5000 || exit 1
     depends_on:
       - db
-
-  node:
-    build:
-      context: .
-      dockerfile: ./docker/seed/Dockerfile
-    ports:
-      - "5001:5000"
-      - "7001:7000"
-    environment:
-      ASPNETCORE_URLS: "http://*:5000"
-      AKKA_TYPE: "node"
-    healthcheck:
-      test: curl --fail http://node:5001 || exit 1
-    depends_on:
-      - db
-      - seed
-
+      - amqp
