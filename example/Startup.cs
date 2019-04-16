@@ -42,7 +42,8 @@ public class Startup
              * Note, for any console apps you can simply use `None`
              */
             ReactiveServicesOption.WithApi |
-            ReactiveServicesOption.WithSwagger
+            ReactiveServicesOption.WithSwagger |
+            ReactiveServicesOption.WithTopics
         );
 
     }

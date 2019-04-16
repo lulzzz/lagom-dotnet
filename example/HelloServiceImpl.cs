@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Actor;
+using Akka.Persistence.Query;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Microsoft.Extensions.Logging;
@@ -98,29 +99,36 @@ public class HelloServiceImpl : HelloService
                 );
         };
 
-    public class TopicMessage<TEvent>
-        where TEvent : AbstractEvent
-    {
-        public string MessageId { get; }
-        public TEvent Payload { get; }
-
-        public TopicMessage(string messageId, TEvent payload)
-        {
-            MessageId = messageId;
-            Payload = payload;
-        }
-    }
 
     public override Topic<HelloEvent> GreetingsTopic() =>
         TopicProducer.SingleStreamWithOffset<HelloEvent>(
-            fromOffset => Registry.EventStream<HelloEvent>(
-                HelloEventTag.Instance, fromOffset
-            )
-            .Select(envelope =>
+            fromOffset =>
             {
-                var (@event, offset) = envelope;
-                var message = new TopicMessage(((Sequence)offset).Value.ToString(), @event);
-                return KeyValuePair.Create(message, offset);
-            })
+                var stream = Registry.EventStream<HelloEvent>(
+                    HelloEventTag.Instance, fromOffset
+                );
+
+                stream.Select(envelope =>
+                {
+                    var (@event, offset) = envelope;
+                    var offsetValue = ((Sequence)offset).Value.ToString();
+                    var message = new DateTime();
+                    return KeyValuePair.Create(message, offset);
+                });
+
+                return stream;
+            }
         );
+}
+
+public class TopicMessage<T> where T : class
+{
+    public string MessageId { get; }
+    public T Payload { get; }
+
+    public TopicMessage(string messageId, T payload)
+    {
+        MessageId = messageId;
+        Payload = payload;
+    }
 }

@@ -17,7 +17,7 @@ namespace wyvern.api.ioc
         static Func<IMessagePropertyExtractor> ExtractorFactory = () => new DefaultExtractor();
 
         private List<Action<IServiceCollection>> ServiceDelegates { get; } = new List<Action<IServiceCollection>>();
-        private List < (Type, Type) > TypeMapping { get; } = new List < (Type, Type) > ();
+        private List<(Type, Type)> TypeMapping { get; } = new List<(Type, Type)>();
         private List<Action<ActorSystem>> ActorSystemDelegates { get; } = new List<Action<ActorSystem>>();
 
         public ReactiveServicesBuilder()
@@ -39,7 +39,7 @@ namespace wyvern.api.ioc
 
                 // Load Fallback sources (environment first, then base config)
                 var environment = Environment.GetEnvironmentVariable("AKKA_ENVIRONMENT");
-                var config = (new []
+                var config = (new[]
                     {
                         (1, "akka.conf"), // Last fallback
                         (2, "akka.overrides.conf"), // First fallback
@@ -93,6 +93,7 @@ namespace wyvern.api.ioc
         internal IReactiveServices Build(IServiceCollection services)
         {
             ServiceDelegates.Add(x => x.AddTransient<ISerializer>(y => SerializerFactory.Invoke()));
+            ServiceDelegates.Add(x => x.AddTransient<IMessagePropertyExtractor>(y => ExtractorFactory.Invoke()));
             foreach (var serviceDelegate in ServiceDelegates)
                 serviceDelegate.Invoke(services);
             return new ReactiveServices(TypeMapping);
