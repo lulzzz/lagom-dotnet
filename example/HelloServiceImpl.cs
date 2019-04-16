@@ -66,7 +66,7 @@ public class HelloServiceImpl : HelloService
                     id, st, ed,
                     (env) =>
                     {
-                        var(@event, offset) = env;
+                        var (@event, offset) = env;
                         var message = @event;
                         var obj = Newtonsoft.Json.JsonConvert.SerializeObject(message);
                         var msg = Encoding.ASCII.GetBytes(obj);
@@ -88,7 +88,7 @@ public class HelloServiceImpl : HelloService
                     st,
                     (env) =>
                     {
-                        var(@event, offset) = env;
+                        var (@event, offset) = env;
                         var message = @event;
                         var obj = Newtonsoft.Json.JsonConvert.SerializeObject(message);
                         var msg = Encoding.ASCII.GetBytes(obj);
@@ -98,6 +98,19 @@ public class HelloServiceImpl : HelloService
                 );
         };
 
+    public class TopicMessage<TEvent>
+        where TEvent : AbstractEvent
+    {
+        public string MessageId { get; }
+        public TEvent Payload { get; }
+
+        public TopicMessage(string messageId, TEvent payload)
+        {
+            MessageId = messageId;
+            Payload = payload;
+        }
+    }
+
     public override Topic<HelloEvent> GreetingsTopic() =>
         TopicProducer.SingleStreamWithOffset<HelloEvent>(
             fromOffset => Registry.EventStream<HelloEvent>(
@@ -105,8 +118,8 @@ public class HelloServiceImpl : HelloService
             )
             .Select(envelope =>
             {
-                var(@event, offset) = envelope;
-                var message = @event;
+                var (@event, offset) = envelope;
+                var message = new TopicMessage(((Sequence)offset).Value.ToString(), @event);
                 return KeyValuePair.Create(message, offset);
             })
         );

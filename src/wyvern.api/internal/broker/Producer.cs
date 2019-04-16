@@ -33,17 +33,17 @@ internal static partial class Producer
     /// </summary>
     public static class TaggedOffsetProducerActor
     {
-        public static Props Props<TEvent>(
+        public static Props Props<TMessage>(
             TopicConfig topicConfig,
             string topicId,
-            Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+            Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
             ISerializer serializer,
             IMessagePropertyExtractor extractor,
             IOffsetStore offsetStore
-        ) where TEvent : AbstractEvent
+        ) where TMessage : class
         {
             return Akka.Actor.Props.Create(() =>
-                new TaggedOffsetProducerActor<TEvent>(
+                new TaggedOffsetProducerActor<TMessage>(
                     topicConfig,
                     topicId,
                     eventStreamFactory,
@@ -66,19 +66,19 @@ internal static partial class Producer
     /// <param name="eventStreamFactory"></param>
     /// <param name="offsetStore"></param>
     /// <typeparam name="TMessage"></typeparam>
-    public static void StartTaggedOffsetProducer<TEvent>(
+    public static void StartTaggedOffsetProducer<TMessage>(
         ActorSystem system,
         ImmutableArray<AggregateEventTag> tags,
         TopicConfig topicConfig,
         string topicId,
-        Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+        Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
         ISerializer serializer,
         IMessagePropertyExtractor extractor,
         IOffsetStore offsetStore
-    ) where TEvent : AbstractEvent
+    ) where TMessage : class
     {
         var producerConfig = new ProducerConfig(system.Settings.Config);
-        var publisherProps = TaggedOffsetProducerActor.Props<TEvent>(
+        var publisherProps = TaggedOffsetProducerActor.Props<TMessage>(
             topicConfig, topicId, eventStreamFactory, serializer, extractor, offsetStore
         );
 
@@ -111,8 +111,8 @@ internal static partial class Producer
     /// Tagged offset producer actor
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public class TaggedOffsetProducerActor<TEvent> : ReceiveActor
-    where TEvent : AbstractEvent
+    public class TaggedOffsetProducerActor<TMessage> : ReceiveActor
+    where TMessage : class
     {
         /// <summary>
         /// Coordinated shutdown
@@ -135,7 +135,7 @@ internal static partial class Producer
         /// Event stream creation
         /// </summary>
         /// <value></value>
-        Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> EventStreamFactory { get; }
+        Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> EventStreamFactory { get; }
 
         /// <summary>
         /// Serializer to use
@@ -172,7 +172,7 @@ internal static partial class Producer
         public TaggedOffsetProducerActor(
             TopicConfig topicConfig,
             string topicId,
-            Func<string, Offset, Source<KeyValuePair<TEvent, Offset>, NotUsed>> eventStreamFactory,
+            Func<string, Offset, Source<KeyValuePair<TMessage, Offset>, NotUsed>> eventStreamFactory,
             ISerializer serializer,
             IMessagePropertyExtractor extractor,
             IOffsetStore offsetStore
@@ -272,7 +272,7 @@ internal static partial class Producer
         public void Run(string tag, TopicConfig config, IOffsetDao offsetDao)
         {
             EventStreamFactory.Invoke(tag, offsetDao.LoadedOffset)
-                .ViaMaterialized(KillSwitches.Single<KeyValuePair<TEvent, Offset>>(), Keep.Right)
+                .ViaMaterialized(KillSwitches.Single<KeyValuePair<TMessage, Offset>>(), Keep.Right)
                 .Via(EventsPublisherFlow(config, offsetDao))
                 .ToMaterialized(Sink.Ignore<Task<Done>>(), Keep.Both)
                 .Run(Context.Materializer());
@@ -286,18 +286,18 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="offsetDao"></param>
         /// <returns></returns>
-        private IGraph<FlowShape<KeyValuePair<TEvent, Offset>, Task<Done>>, NotUsed > EventsPublisherFlow(TopicConfig config, IOffsetDao offsetDao)
+        private IGraph<FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>, NotUsed> EventsPublisherFlow(TopicConfig config, IOffsetDao offsetDao)
         {
             return Flow.FromGraph(
                 GraphDsl.Create(
                     /* Publish */
                     Flow.FromFunction(
-                        (TEvent m) => ServiceBusFlowPublisher(config, m)
+                        (TMessage m) => ServiceBusFlowPublisher(config, m)
                     ),
                     /* Unzip/Zip Flow */
                     (builder, shape) =>
                     {
-                        var unzip = builder.Add(new UnZip<TEvent, Offset>());
+                        var unzip = builder.Add(new UnZip<TMessage, Offset>());
                         var zip = builder.Add(new Zip<Task<Done>, Offset>());
                         var offsetCommitter = builder.Add(
                             Flow.FromFunction(
@@ -310,7 +310,7 @@ internal static partial class Producer
                         builder.From(unzip.Out1).To(zip.In1);
                         builder.From(zip.Out).To(offsetCommitter.Inlet);
 
-                        return new FlowShape<KeyValuePair<TEvent, Offset>, Task<Done>>(
+                        return new FlowShape<KeyValuePair<TMessage, Offset>, Task<Done>>(
                             unzip.In, offsetCommitter.Outlet
                         );
                     }
@@ -324,7 +324,7 @@ internal static partial class Producer
         /// <param name="endpoint"></param>
         /// <param name="m"></param>
         /// <returns></returns>
-        private Task<Done> ServiceBusFlowPublisher(TopicConfig config, TEvent m)
+        private Task<Done> ServiceBusFlowPublisher(TopicConfig config, TMessage m)
         {
             try
             {
@@ -341,10 +341,10 @@ internal static partial class Producer
                 senderLink.Send(new Message
                 {
                     BodySection = new Data
-                        {
-                            Binary = binary
-                        },
-                        ApplicationProperties = appProps
+                    {
+                        Binary = binary
+                    },
+                    ApplicationProperties = appProps
                 });
 
                 senderLink.Close();
