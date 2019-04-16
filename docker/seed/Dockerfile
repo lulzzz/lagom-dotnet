@@ -5,6 +5,7 @@ COPY ./example/*.csproj ./example/
 COPY ./src/wyvern.api/*.csproj ./src/wyvern.api/
 COPY ./src/wyvern.entity/*.csproj ./src/wyvern.entity/
 COPY ./src/wyvern.utils/*.csproj ./src/wyvern.utils/
+COPY ./src/wyvern.visualize/*.csproj ./src/wyvern.visualize/
 
 
 RUN cd ./example/ && \
