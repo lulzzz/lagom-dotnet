@@ -1,9 +1,10 @@
 ﻿using Akka.Actor;
 using Akka.Util;
-using Akka.Visualize.Clients;
+using wyvern.visualize.Clients;
 using Microsoft.Extensions.DependencyInjection;
+using wyvern.visualize;
 
-namespace Akka.Visualize
+namespace wyvern.visualize
 {
     /// <summary>
     /// The extension class registered with an Akka.NET <see cref="ActorSystem"/>
@@ -36,11 +37,11 @@ namespace Akka.Visualize
 
         #region Static methods
 
-        public static void InstallVisualizer(ActorSystem system, IActorVisualizeClient client)
+        public static void InstallVisualizer(ActorSystem system)
         {
             system
                 .WithExtension<ActorVisualize, ActorVisualizeExtension>()
-                .RegisterMonitor(client);
+                .RegisterMonitor(new WebApiVisualizer());
         }
 
         ///// <summary>
@@ -75,9 +76,9 @@ namespace Akka.Visualize
     public static class ActorVisualizeExtensionMethods
     {
         public static IServiceCollection WithVisualizer(this IServiceCollection services,
-            ActorSystem system, IActorVisualizeClient client)
+            ActorSystem system)
         {
-            ActorVisualizeExtension.InstallVisualizer(system, client);
+            ActorVisualizeExtension.InstallVisualizer(system);
             return services;
         }
     }

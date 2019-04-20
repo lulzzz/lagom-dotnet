@@ -5,7 +5,7 @@ using wyvern.api.abstractions;
 
 namespace wyvern.api.@internal.surfaces
 {
-    public class SqlServerOffsetDao : IOffsetDao
+    internal class SqlServerOffsetDao : IOffsetDao
     {
         SqlServerOffsetStore Store { get; }
 

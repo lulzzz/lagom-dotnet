@@ -7,7 +7,7 @@ namespace wyvern.api.@internal.surfaces
     /// <summary>
     /// Provides a connection factory to the default database instance
     /// </summary>
-    public class SqlServerProvider
+    internal class SqlServerProvider
     {
         /// <summary>
         /// subsection configuration

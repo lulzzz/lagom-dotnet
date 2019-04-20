@@ -14,8 +14,6 @@ using wyvern.utils;
 
 namespace wyvern.api.@internal.readside
 {
-    public class Provider<T> { }
-
     internal class ReadSideImpl : ReadSide
     {
         ReadSideConfig Config { get; }
@@ -95,7 +93,7 @@ namespace wyvern.api.@internal.readside
 
     }
 
-    public class ClusterStartupTaskActor : ReceiveActor
+    internal class ClusterStartupTaskActor : ReceiveActor
     {
         public class Execute { }
 
@@ -147,7 +145,7 @@ namespace wyvern.api.@internal.readside
 
     }
 
-    public class ClusterStartupTask
+    internal class ClusterStartupTask
     {
         public static ClusterStartupTask Apply(
             ActorSystem system, string taskName,
@@ -160,7 +158,6 @@ namespace wyvern.api.@internal.readside
                     task, taskTimeout
                 )
             );
-
             var backoffProps = BackoffSupervisor.PropsWithSupervisorStrategy(
                 startupTaskProps, taskName, minBackoff, maxBackoff, randomBackoffFactor, SupervisorStrategy.StoppingStrategy
             );

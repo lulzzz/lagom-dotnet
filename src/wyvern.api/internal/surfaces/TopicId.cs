@@ -1,6 +1,8 @@
+using wyvern.api.abstractions;
+
 namespace wyvern.api.@internal.surfaces
 {
-    public class TopicId
+    internal class TopicId : ITopicId
     {
         public TopicId(string name)
         {

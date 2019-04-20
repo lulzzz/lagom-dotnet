@@ -30,7 +30,7 @@ namespace wyvern.api
             if (this == o) return true;
             if (o == null || GetType() != o.GetType()) return false;
 
-            var method = (Method) o;
+            var method = (Method)o;
 
             return Name.Equals(method.Name);
         }

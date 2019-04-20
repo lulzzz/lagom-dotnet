@@ -1,10 +1,11 @@
 using System;
+using wyvern.api.abstractions;
 
 namespace wyvern.api.@internal.surfaces
 {
-    public class InternalTopic<Message> : Topic<Message>
+    internal class InternalTopic<Message> : Topic<Message>
     {
-        public TopicId TopicId => throw new NotImplementedException();
+        public ITopicId TopicId => throw new NotImplementedException();
 
         // ImmutableArray<AggregateEventTag<Event>> Tags { get; }
         // (AggregateEventTag<Event>, Offset) ReadSideStream { get; } // output...

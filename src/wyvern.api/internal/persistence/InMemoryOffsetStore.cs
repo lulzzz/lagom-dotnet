@@ -8,7 +8,7 @@ namespace wyvern.api.@internal.surfaces
     /// Offset Store for local development, not to be used in production
     /// </summary>
     [Obsolete("Not for production use")]
-    public class InMemoryOffsetStore : IOffsetStore
+    internal class InMemoryOffsetStore : IOffsetStore
     {
         public Task<IOffsetDao> Prepare(string processorId, string tag)
         {

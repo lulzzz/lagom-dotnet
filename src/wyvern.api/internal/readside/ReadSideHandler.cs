@@ -8,7 +8,7 @@ using wyvern.entity.@event.aggregate;
 
 namespace wyvern.api.@internal.readside
 {
-    public class ReadSideHandler<TE> where TE : AggregateEvent<TE>
+    public abstract class ReadSideHandler<TE> where TE : AggregateEvent<TE>
     {
         public virtual Task<Done> GlobalPrepare()
         {

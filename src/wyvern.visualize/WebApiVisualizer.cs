@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using Akka.Visualize;
-using Akka.Visualize.Clients;
-using Akka.Visualize.Models;
+using wyvern.visualize;
+using wyvern.visualize.Clients;
+using wyvern.visualize.Models;
 
-namespace wyvern.api
+namespace wyvern.visualize
 {
     public class WebApiVisualizer : IActorVisualizeClient
     {

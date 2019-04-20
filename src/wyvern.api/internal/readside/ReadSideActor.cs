@@ -42,7 +42,7 @@ namespace wyvern.api.@internal.readside
 
     }
 
-    public class ReadSideActor<TE> : ReceiveActor
+    internal class ReadSideActor<TE> : ReceiveActor
         where TE : AggregateEvent<TE>
     {
         ReadSideConfig Config { get; }

@@ -5,9 +5,9 @@ using wyvern.utils;
 
 namespace wyvern.api.@internal.readside
 {
-    public class ReadSideConfig
+    internal class ReadSideConfig
     {
-        public TimeSpan GlobalPrepareTimeout { get; }  = 20d.seconds();
+        public TimeSpan GlobalPrepareTimeout { get; } = 20d.seconds();
         public TimeSpan MaxBackoff { get; } = 3d.seconds();
         public TimeSpan MinBackoff { get; } = 30d.seconds();
         public TimeSpan OffsetTimeout { get; } = 5d.seconds();

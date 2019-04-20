@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Routing;
-using Akka.Visualize.Models;
-using Akka.Visualize.Utils;
+using wyvern.visualize.Models;
+using wyvern.visualize.Utils;
 
-namespace Akka.Visualize.Interop
+namespace wyvern.visualize.Interop
 {
     internal class Messages
     {

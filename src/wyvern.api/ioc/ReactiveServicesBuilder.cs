@@ -11,7 +11,7 @@ using wyvern.utils;
 
 namespace wyvern.api.ioc
 {
-    public class ReactiveServicesBuilder : IReactiveServicesBuilder
+    internal class ReactiveServicesBuilder : IReactiveServicesBuilder
     {
         static Func<ISerializer> SerializerFactory = () => new DefaultSerializer();
         static Func<IMessagePropertyExtractor> ExtractorFactory = () => new DefaultExtractor();
@@ -59,22 +59,22 @@ namespace wyvern.api.ioc
             });
         }
 
-        public ReactiveServicesBuilder AddReactiveService<T, TI>()
-        where TI : T
-        where T : Service
+        public IReactiveServicesBuilder AddReactiveService<T, TI>()
+            where TI : T
+            where T : Service
         {
             ServiceDelegates.Add(x => x.AddTransient<T, TI>());
             TypeMapping.Add((typeof(T), typeof(TI)));
             return this;
         }
 
-        public ReactiveServicesBuilder AddActorSystemDelegate(Action<ActorSystem> actorSystemDelegate)
+        public IReactiveServicesBuilder AddActorSystemDelegate(Action<ActorSystem> actorSystemDelegate)
         {
             ActorSystemDelegates.Add(actorSystemDelegate);
             return this;
         }
 
-        public ReactiveServicesBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null)
+        public IReactiveServicesBuilder WithTopicSerializer<T>(Func<ISerializer> serializerFactory = null)
         where T : ISerializer, new()
         {
             if (serializerFactory != null)
@@ -82,7 +82,7 @@ namespace wyvern.api.ioc
             return this;
         }
 
-        public ReactiveServicesBuilder WithMessagePropertyExtractor<T>(Func<IMessagePropertyExtractor> extractorFactory = null)
+        public IReactiveServicesBuilder WithMessagePropertyExtractor<T>(Func<IMessagePropertyExtractor> extractorFactory = null)
         where T : IMessagePropertyExtractor, new()
         {
             if (extractorFactory != null)

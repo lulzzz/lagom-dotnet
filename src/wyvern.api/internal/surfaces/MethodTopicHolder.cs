@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace wyvern.api.@internal.surfaces
 {
-    public class MethodTopicHolder : TopicHolder
+    internal class MethodTopicHolder : TopicHolder
     {
         public MethodTopicHolder(MethodInfo method)
         {
@@ -13,7 +13,7 @@ namespace wyvern.api.@internal.surfaces
 
         public Topic<M> Create<M>(Service service)
         {
-            return (Topic<M>) Method.Invoke(service, null);
+            return (Topic<M>)Method.Invoke(service, null);
         }
     }
 }

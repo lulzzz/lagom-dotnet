@@ -1,4 +1,4 @@
-using Akka.Visualize;
+using wyvern.visualize;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +34,7 @@ public class Startup
                 x.AddActorSystemDelegate(system =>
                 {
                     /* This visualizer is a bit of a nice to have, not fully functional yet */
-                    //ActorVisualizeExtension.InstallVisualizer(system, new WebApiVisualizer());
+                    ActorVisualizeExtension.InstallVisualizer(system);
                 });
             },
             /*

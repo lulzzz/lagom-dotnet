@@ -1,9 +1,10 @@
 ﻿using Akka.Persistence.Query;
 using Akka.Streams.Util;
+using wyvern.api.abstractions;
 
 namespace wyvern.api.@internal.readside
 {
-    public static class EventStreamElement
+    internal static class EventStreamElement
     {
         public static Option<(string, TE, Offset)> Unapply<TE>(EventStreamElement<TE> element) where TE : EventStreamElement<TE> =>
             new Option<(string, TE, Offset)>(
@@ -11,7 +12,8 @@ namespace wyvern.api.@internal.readside
             );
     }
 
-    public class EventStreamElement<TE> where TE : class
+    internal class EventStreamElement<TE> : IEventStreamElement<TE>
+        where TE : class
     {
         public string EntityId { get; }
         public TE Event { get; }

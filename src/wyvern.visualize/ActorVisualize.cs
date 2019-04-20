@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Visualize.Clients;
-using Akka.Visualize.Interop;
-using Akka.Visualize.Models;
+using wyvern.visualize.Clients;
+using wyvern.visualize.Interop;
+using wyvern.visualize.Models;
 
-namespace Akka.Visualize
+namespace wyvern.visualize
 {
     public class ActorVisualize : IExtension, IActorVisualizer
     {

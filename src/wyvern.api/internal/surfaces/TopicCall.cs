@@ -8,10 +8,10 @@ namespace wyvern.api.@internal.surfaces
         /// Topic identifier
         /// </summary>
         /// <value></value>
-        public TopicId TopicId { get; }
+        public ITopicId TopicId { get; }
         public object TopicHolder { get; }
 
-        internal TopicCall(TopicId topicId, object topicHolder)
+        internal TopicCall(ITopicId topicId, object topicHolder)
         {
             (TopicId, TopicHolder) =
             (topicId, topicHolder);

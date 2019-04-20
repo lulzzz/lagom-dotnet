@@ -16,7 +16,7 @@ namespace wyvern.api.ioc
     /// Main component responsible for generating swagger documents from
     /// the service descriptors.
     /// </summary>
-    public class ReactiveServicesApiDescriptionsDocumentFilter : IDocumentFilter
+    internal class ReactiveServicesApiDescriptionsDocumentFilter : IDocumentFilter
     {
         IServiceProvider _provider;
 

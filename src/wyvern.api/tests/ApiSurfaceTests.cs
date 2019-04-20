@@ -5,6 +5,7 @@ using Xunit;
 
 namespace wyvern.api.tests
 {
+    [Trait("Category", "tests")]
     public class ApiSurfaceTests
     {
         [Fact]
@@ -14,7 +15,8 @@ namespace wyvern.api.tests
                 .GetTypes()
                 .Where(x => x.Namespace != null && x.Namespace.StartsWith("wyvern.api"))
                 .Where(x => x.IsClass || x.IsInterface)
-                .Where(x => x.IsPublic);
+                .Where(x => x.IsPublic)
+                .Where(x => x.GetCustomAttributes(typeof(TraitAttribute), true).Length == 0);
 
             var errors = new List<string>();
             foreach (var type in types)

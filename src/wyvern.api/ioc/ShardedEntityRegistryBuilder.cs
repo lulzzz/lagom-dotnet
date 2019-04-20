@@ -13,7 +13,7 @@ using static wyvern.api.@internal.readside.ClusterDistributionExtensionProvider;
 
 namespace wyvern.api.ioc
 {
-    public sealed class ShardedEntityRegistryBuilder : IShardedEntityRegistryBuilder
+    internal sealed class ShardedEntityRegistryBuilder : IShardedEntityRegistryBuilder
     {
         private ActorSystem ActorSystem { get; }
         private IConfiguration Config { get; }

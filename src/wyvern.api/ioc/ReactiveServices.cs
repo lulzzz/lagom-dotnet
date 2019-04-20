@@ -8,7 +8,7 @@ namespace wyvern.api.ioc
     /// <summary>
     /// Typed enumerator of reactive services
     /// </summary>
-    public class ReactiveServices : IReactiveServices
+    internal class ReactiveServices : IReactiveServices
     {
         /// <summary>
         /// Constructor

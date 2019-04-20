@@ -23,6 +23,7 @@ using wyvern.api.abstractions;
 using wyvern.api.exceptions;
 using wyvern.api.@internal.surfaces;
 using wyvern.utils;
+using wyvern.visualize;
 
 namespace wyvern.api.ioc
 {
@@ -59,7 +60,7 @@ namespace wyvern.api.ioc
         /// <param name="builderDelegate"></param>
         /// <returns></returns>
         public static IServiceCollection AddReactiveServices(this IServiceCollection services,
-            Action<ReactiveServicesBuilder> builderDelegate, ReactiveServicesOption options)
+            Action<IReactiveServicesBuilder> builderDelegate, ReactiveServicesOption options)
         {
             Options = options;
 
@@ -85,7 +86,7 @@ namespace wyvern.api.ioc
                         {
                             // TODO: make this name configurable...
                             Title = "My Reactive Services",
-                                Version = "v1"
+                            Version = "v1"
                         });
                     });
                 }
@@ -101,8 +102,8 @@ namespace wyvern.api.ioc
 
             void ServiceIterator(Action<Service, Type> x)
             {
-                foreach (var(serviceType, _) in reactiveServices)
-                    x((Service) services.GetService(serviceType), serviceType);
+                foreach (var (serviceType, _) in reactiveServices)
+                    x((Service)services.GetService(serviceType), serviceType);
             }
 
             // Register any service bound topics
@@ -182,7 +183,7 @@ namespace wyvern.api.ioc
         /// <param name="router"></param>
         private static void AddVisualizer(IRouteBuilder router)
         {
-            router.MapGet("/api/visualizer/list", async(req, res, ctx) =>
+            router.MapGet("/api/visualizer/list", async (req, res, ctx) =>
             {
                 req.Query.TryGetValue("path", out var path);
                 var obj = await WebApiVisualizer.Root.List(path);
@@ -192,7 +193,7 @@ namespace wyvern.api.ioc
                 await res.Body.WriteAsync(content, 0, content.Length);
             });
 
-            router.MapGet("/api/visualizer/send", async(req, res, ctx) =>
+            router.MapGet("/api/visualizer/send", async (req, res, ctx) =>
             {
                 req.Query.TryGetValue("path", out var path);
                 req.Query.TryGetValue("messageType", out var messageType);
@@ -206,16 +207,16 @@ namespace wyvern.api.ioc
 
         private static void RegisterTopic(object t, Service s, ISerializer serializer, IMessagePropertyExtractor extractor, ActorSystem sys)
         {
-            var topicCall = (ITopicCall) t;
+            var topicCall = (ITopicCall)t;
             if (!(topicCall.TopicHolder is MethodTopicHolder))
                 throw new NotImplementedException();
 
             // TODO: Offset registry
             // TODO: SenderLink
 
-            var producer = ((MethodTopicHolder) topicCall.TopicHolder).Method.Invoke(s, null);
+            var producer = ((MethodTopicHolder)topicCall.TopicHolder).Method.Invoke(s, null);
             typeof(ITaggedOffsetTopicProducer<>)
-            .MakeGenericType(producer.GetType().GetGenericArguments() [0])
+            .MakeGenericType(producer.GetType().GetGenericArguments()[0])
                 .GetMethod("Init")
                 .Invoke(producer, new object[] { sys, topicCall.TopicId.Name, serializer, extractor });
 
@@ -230,7 +231,7 @@ namespace wyvern.api.ioc
         /// <param name="call"></param>
         private static void RegisterCall(IRouteBuilder router, Service service, Type serviceType, ICall call)
         {
-            var(routeMapper, path) = ExtractRoutePath(router, call);
+            var (routeMapper, path) = ExtractRoutePath(router, call);
 
             var mref = call.MethodRef;
             var mrefParams = mref.GetParameters();
@@ -239,7 +240,7 @@ namespace wyvern.api.ioc
 
             routeMapper(
                 path,
-                async(req, res, data) =>
+                async (req, res, data) =>
                 {
                     object[] mrefParamArray = mrefParams.Select(x =>
                         {
@@ -269,7 +270,7 @@ namespace wyvern.api.ioc
                     // TODO: Casting...
 
                     var mres = mref.Invoke(service, mrefParamArray);
-                    var cref = mres.GetType().GetMethod("Invoke", new [] { requestType });
+                    var cref = mres.GetType().GetMethod("Invoke", new[] { requestType });
 
                     dynamic task;
                     if (requestType == typeof(NotUsed))
@@ -282,11 +283,11 @@ namespace wyvern.api.ioc
                     else
                     {
                         string body;
-                        using(var reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
-                        body = reader.ReadToEnd();
+                        using (var reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
+                            body = reader.ReadToEnd();
 
                         var obj = JsonConvert.DeserializeObject(body, requestType);
-                        task = cref.Invoke(mres, new [] { obj });
+                        task = cref.Invoke(mres, new[] { obj });
                     }
 
                     try
@@ -329,13 +330,13 @@ namespace wyvern.api.ioc
         /// <param name="call"></param>
         private static void RegisterStream(IRouteBuilder router, Service service, Type serviceType, ICall call, IApplicationBuilder app)
         {
-            var(_, path) = ExtractRoutePath(router, call);
+            var (_, path) = ExtractRoutePath(router, call);
 
             var mref = call.MethodRef;
             var mrefParams = mref.GetParameters();
             var methodRefType = mref.ReturnType;
 
-            app.Use(async(context, next) =>
+            app.Use(async (context, next) =>
             {
                 if (context.Request.Path != path) // TODO: this isn't matching with embedded path variables.
                 {
@@ -376,7 +377,7 @@ namespace wyvern.api.ioc
 
                     var mres = mref.Invoke(service, mrefParamArray);
                     var cref = mres.GetType().GetMethod("Invoke");
-                    var t = (Task) cref.Invoke(mres, new object[] { socket });
+                    var t = (Task)cref.Invoke(mres, new object[] { socket });
                     await t.ConfigureAwait(false);
                 }
             });
@@ -386,7 +387,7 @@ namespace wyvern.api.ioc
         /// <summary>
         /// Extract route path from call identifier
         /// </summary>
-        private static(Func<string, Func<HttpRequest, HttpResponse, RouteData, Task>, IRouteBuilder>, string)
+        private static (Func<string, Func<HttpRequest, HttpResponse, RouteData, Task>, IRouteBuilder>, string)
         ExtractRoutePath(IRouteBuilder router, ICall call)
         {
             switch (call.CallId)

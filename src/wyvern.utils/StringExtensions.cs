@@ -1,25 +1,33 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 
 namespace wyvern.utils
 {
-    public static class Preconditions
-    {
-        public static void IsNotNull<T>(this T thing, string errorMessage) where T : class
-        {
-            if (thing == null) throw new NullReferenceException(errorMessage);
-        }
-    }
 
+    /// <summary>
+    /// Various string extensions
+    /// </summary>
     public static class StringExtensions
     {
+        /// <summary>
+        /// Hashes a string into a shard id
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="maxShards"></param>
+        /// <returns></returns>
         public static string ToShardId(this string str, int maxShards)
         {
             return (str.Sum(x => (int)x) % maxShards).ToString();
         }
 
+        /// <summary>
+        /// Trims all whitespace on each line of the string up until the given
+        /// margin decorator.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="marginDecorator"></param>
+        /// <returns></returns>
         public static string TrimMargin(this string str, string marginDecorator = "|")
         {
             StringBuilder sb = new StringBuilder();
@@ -36,14 +44,6 @@ namespace wyvern.utils
                 }
             }
             return sb.ToString();
-        }
-    }
-
-    public static class DoubleExtensions
-    {
-        public static TimeSpan seconds(this double d)
-        {
-            return TimeSpan.FromSeconds(d);
         }
     }
 

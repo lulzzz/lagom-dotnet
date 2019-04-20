@@ -1,7 +1,7 @@
 ﻿using System;
 using Akka.Actor;
 
-namespace Akka.Visualize
+namespace wyvern.visualize
 {
     public class ActorVisualizeLogger : ReceiveActor
     {

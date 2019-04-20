@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace wyvern.utils
 {
-
     public class DotNetCoreLogger : ReceiveActor, ILogReceive
     {
         ILogger<DotNetCoreLogger> Logger { get; }

@@ -4,7 +4,7 @@ namespace wyvern.api.abstractions
 {
     public interface ITopicCall
     {
-        TopicId TopicId { get; }
+        ITopicId TopicId { get; }
         object TopicHolder { get; }
     }
 

@@ -9,8 +9,13 @@ using wyvern.entity.@event.aggregate;
 
 namespace wyvern.api.@internal.surfaces
 {
-    public class TopicProducer
+    public static class TopicProducer
     {
+        public sealed class SingletonEvent : AggregateEvent<SingletonEvent>
+        {
+            public override IAggregateEventTagger AggregateTag => SingletonTag[0];
+        }
+
         private static readonly ImmutableArray<AggregateEventTag> SingletonTag = ImmutableArray.Create(
             AggregateEventTag.Of<SingletonEvent>("singleton")
         );
@@ -29,11 +34,6 @@ namespace wyvern.api.@internal.surfaces
                 new TaggedOffsetTopicProducer<TEvent>(
                     tags, eventStream
                 );
-        }
-
-        public sealed class SingletonEvent : AggregateEvent<SingletonEvent>
-        {
-            public override IAggregateEventTagger AggregateTag => SingletonTag[0];
         }
     }
 }

@@ -3,6 +3,7 @@ using Akka;
 using Akka.Persistence.Query;
 using Akka.Streams.Dsl;
 using Microsoft.Extensions.Configuration;
+using wyvern.api.abstractions;
 using wyvern.entity.@event.aggregate;
 
 namespace wyvern.api.@internal.readside
@@ -22,7 +23,7 @@ namespace wyvern.api.@internal.readside
         {
             public Task<Done> GlobalPrepare() => Task.FromResult(Done.Instance);
             public Task<Offset> Prepare(AggregateEventTag tag) => Task.FromResult<Offset>(NoOffset.Instance);
-            public abstract Flow<EventStreamElement<TE>, Done, NotUsed> Handle();
+            public abstract Flow<IEventStreamElement<TE>, Done, NotUsed> Handle();
         }
     }
 }

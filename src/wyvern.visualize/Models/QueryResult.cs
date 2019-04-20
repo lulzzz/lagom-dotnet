@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 
-namespace Akka.Visualize.Models
+namespace wyvern.visualize.Models
 {
-	public class QueryResult
-	{
-		public QueryResult(string path, List<NodeInfo> children)
-		{
-			Path = path;
-			Children = children;
-		}
+    public class QueryResult
+    {
+        public QueryResult(string path, List<NodeInfo> children)
+        {
+            Path = path;
+            Children = children;
+        }
 
-		public string Path { get; }
-		public List<NodeInfo> Children { get; }
-	}
+        public string Path { get; }
+        public List<NodeInfo> Children { get; }
+    }
 }

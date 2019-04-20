@@ -10,7 +10,7 @@ namespace wyvern.api.@internal.surfaces
     /// Offset DAO for local development, not to be used in production
     /// </summary>
     [Obsolete("Not for production use")]
-    public class InMemoryOffsetDao : IOffsetDao
+    internal class InMemoryOffsetDao : IOffsetDao
     {
         public Offset LoadedOffset { get; private set; } = Offset.NoOffset();
 

@@ -25,7 +25,7 @@ internal static partial class Producer
         /// <returns></returns>
         public ProducerConfig(Config config) : base(config, section)
         {
-            Role = config.GetString("role", "");
+            Role = config.GetString("role", string.Empty);
         }
     }
 }
