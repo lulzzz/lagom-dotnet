@@ -12,5 +12,5 @@ done
 
 # Create database
 echo "$0: Creating database"
-sqlcmd -S localhost -U sa -P $SA_PASSWORD -d master -Q 'create database wyvern;' &> /dev/null
+sqlcmd -S localhost -U sa -P $SA_PASSWORD -d master -Q 'create database example;' &> /dev/null
 echo "$0: Database created"

@@ -2,13 +2,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
+
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.3.10"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" >
-      <NoWarn>NU1602,NU1604</NoWarn>
-    </PackageReference>
+<PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.4" AllowExplicitVersion="true" />
   </ItemGroup>
 </Project>

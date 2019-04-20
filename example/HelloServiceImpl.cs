@@ -44,7 +44,7 @@ public class HelloServiceImpl : HelloService
         {
             var entity = Registry.RefFor<HelloEntity>(name);
             var response = await entity.Ask<string>(new SayHelloCommand(name));
-            return response as string;
+            return response;
         };
 
     public override Func<string, Func<UpdateGreetingRequest, Task<string>>> UpdateGreeting =>
@@ -52,7 +52,8 @@ public class HelloServiceImpl : HelloService
         async req =>
         {
             var entity = Registry.RefFor<HelloEntity>(name);
-            return await entity.Ask<string>(new UpdateGreetingCommand(name, req.Message));
+            var response = await entity.Ask<string>(new UpdateGreetingCommand(name, req.Message));
+            return response;
         };
 
     public override Func<string, long, long, Func<WebSocket, Task>> HelloNameStream =>

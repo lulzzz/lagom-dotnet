@@ -1,17 +1,16 @@
-version: '3.3'
+version: "3.3"
 services:
-
   db:
     build:
       context: ./docker/db
       dockerfile: ./Dockerfile
     environment:
-      SA_PASSWORD: 000000000!
+      SA_PASSWORD: YourStrong!Passw0rd
       ACCEPT_EULA: Y
     ports:
       - "1433:1433"
     healthcheck:
-      test: sqlcmd -S localhost -U SA -P '000000000!'   -Q 'select 1'
+      test: sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd'   -Q 'select 1'
 
   amqp:
     build:
