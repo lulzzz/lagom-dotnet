@@ -90,7 +90,7 @@ namespace wyvern.api.@internal.readside
 
     internal class ClusterStartupTaskActor : ReceiveActor
     {
-        public class Execute { }
+        public sealed class Execute { }
 
         TimeSpan Timeout { get; }
 
@@ -102,6 +102,11 @@ namespace wyvern.api.@internal.readside
                 task().PipeTo(Self);
                 Become(Executing(new[] { Sender }.ToList()));
             });
+        }
+
+        protected override void PreStart()
+        {
+            Self.Ask(new Execute(), Timeout).PipeTo(Self);
         }
 
         private Action Executing(List<IActorRef> outstandingRequests) => () =>
@@ -123,11 +128,6 @@ namespace wyvern.api.@internal.readside
                 throw failure.Exception;
             });
         };
-
-        protected override void PreStart()
-        {
-            Self.Ask(new Execute(), Timeout).PipeTo(Self);
-        }
 
         private void Executed()
         {
@@ -180,8 +180,10 @@ namespace wyvern.api.@internal.readside
         public void Execute(IActorRef sender) =>
             ActorRef.Tell(new ClusterStartupTaskActor.Execute());
 
-        public Task<Done> AskExecute(TimeSpan timeout) =>
-            ActorRef.Ask(new ClusterStartupTaskActor.Execute()).ContinueWith(
-                x => Done.Instance);
+        public async Task<Done> AskExecute(TimeSpan timeout)
+        {
+            var result = await ActorRef.Ask(new ClusterStartupTaskActor.Execute());
+            return Done.Instance;
+        }
     }
 }
