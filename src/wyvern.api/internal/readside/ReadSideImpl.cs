@@ -52,16 +52,11 @@ namespace wyvern.api.@internal.readside
                 );
             }
 
-            // val readSideName = name.asScala.fold("")(_ + "-") + dummyProcessor.readSideName()
-            var readSideName = Name + "-" + dummyProcessor.ReadSideName;
-            var encodedReadSideName = readSideName;
-            // val encodedReadSideName = URLEncoder.encode(readSideName, "utf-8")
+            var readSideName = (Name.HasValue ? (Name.Value + "-") : "") + dummyProcessor.ReadSideName;
+            var encodedReadSideName = readSideName; // URLEncoder.encode(readSideName, "utf-8")
             var tags = dummyProcessor.AggregateTags;
             var entityIds = tags.Select(x => x.Tag);
-            // val eventClass = tags.headOption match {
-            //      case Some(tag) => tag.eventType
-            //      case None => throw new IllegalArgumentException(s"ReadSideProcessor ${clazz.getName} returned 0 tags")
-            // }
+
             var globalPrepareTask = ClusterStartupTask.Apply(
                 System,
                 $"readSideGlobalPrepare-{encodedReadSideName}",
