@@ -23,6 +23,8 @@ services:
       - "5672:5672"
       - "61616:61616"
       - "8161:8161"
+    healthcheck:
+      test: curl -f http://amqp:8161 || false
 
   seed:
     build:
@@ -33,6 +35,9 @@ services:
       - "7000:7000"
     environment:
       ASPNETCORE_URLS: "http://*:5000"
+    healthcheck:
+      test: wget -q --spider -P /dev/null http://seed:5000/api/hello/world
+    restart: always
     depends_on:
       - db
       - amqp
@@ -46,6 +51,9 @@ services:
       - "7001:7001"
     environment:
       ASPNETCORE_URLS: "http://*:5000"
+    healthcheck:
+      test: wget -q --spider -P /dev/null http://node:5000/api/hello/world
+    restart: always
     depends_on:
       - db
       - amqp
