@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Microsoft.Extensions.DependencyInjection;
 using wyvern.api.abstractions;
 using wyvern.utils;
@@ -24,6 +25,10 @@ namespace wyvern.api.ioc
         {
             ServiceDelegates.Add(services =>
             {
+                // Format logging
+                StandardOutLogger.InfoColor = ConsoleColor.Cyan;
+                StandardOutLogger.DebugColor = ConsoleColor.DarkGray;
+
                 // Prepare config root
                 var configRoot = ConfigurationFactory.Empty;
 
@@ -52,6 +57,7 @@ namespace wyvern.api.ioc
                         (acc, cur) => acc.WithFallback(File.ReadAllText(cur.Item2))
                     );
                 var name = config.GetString("wyvern.cluster-system-name", "ClusterSystem");
+
                 var actorSystem = ActorSystem.Create(name, config);
                 services.AddSingleton<ActorSystem>(actorSystem);
                 foreach (var actorSystemDelegate in ActorSystemDelegates)
