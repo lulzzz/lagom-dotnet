@@ -1,5 +1,6 @@
 using System;
 using Akka.Actor;
+using Akka.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using wyvern.api.abstractions;
@@ -19,11 +20,13 @@ namespace wyvern.api
 
             services.AddSingleton(x =>
             {
+                // TODO: this can just be registered and invoked on the other end...
                 var actorSystem = x.GetService<ActorSystem>();
-                var builder = new ShardedEntityRegistryBuilder(actorSystem, x.GetService<IConfiguration>());
-                
+                // TODO: Clean up config so it's directed.
+                var builder = new ShardedEntityRegistryBuilder(actorSystem, x.GetService<IConfiguration>(), x.GetService<Config>());
+
                 builderDelegate.Invoke(builder);
-                
+
                 return builder.Build();
             });
             return services;
