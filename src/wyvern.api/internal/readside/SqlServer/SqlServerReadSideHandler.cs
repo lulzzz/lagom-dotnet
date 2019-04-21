@@ -12,7 +12,9 @@ using wyvern.entity.@event.aggregate;
 
 namespace wyvern.api.@internal.readside.SqlServer
 {
-    internal class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
+    // TODO: Continue working on making this internal
+
+    public class SqlServerReadSideHandler<TE> : ReadSideHandler<TE>
         where TE : AggregateEvent<TE>
     {
         private static Func<string, Func<SqlConnection>> ReadSideConnectionFactoryInitializer { get; } = (constr) => () => new SqlConnection(constr);
