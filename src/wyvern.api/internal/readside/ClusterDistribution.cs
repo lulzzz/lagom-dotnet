@@ -74,16 +74,17 @@ namespace wyvern.api.@internal.readside
                         extractShardId
                     );
 
-                    return ActorSystem.ActorOf(
+                    ActorSystem.ActorOf(
                         EnsureActiveActor.Props(
                             entityIds,
                             shardRegion,
-                            settings.EnsureActiveInterval,
+                            settings.EnsureActiveInterval
+                        ),
                             // TODO: Url encode
                             "cluster-distribution-" + typeName
-                        // TODO: why was name not local????
-                        )
                     );
+
+                    return shardRegion;
                 }
                 else
                 {

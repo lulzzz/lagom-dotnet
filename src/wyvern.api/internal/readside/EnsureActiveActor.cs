@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Akka.Actor;
 
 namespace wyvern.api.@internal.readside
@@ -15,10 +16,10 @@ namespace wyvern.api.@internal.readside
             public static Tick Instance { get; } = new Tick();
         }
 
-        public static Props Props(string[] entityIds, IActorRef shardRegion, TimeSpan ensureActiveInterval, string name)
+        public static Props Props(string[] entityIds, IActorRef shardRegion, TimeSpan ensureActiveInterval)
         {
             return Akka.Actor.Props.Create(
-                () => new EnsureActiveActor(entityIds, shardRegion, ensureActiveInterval, name)
+                () => new EnsureActiveActor(entityIds, shardRegion, ensureActiveInterval)
             );
         }
 
@@ -26,14 +27,12 @@ namespace wyvern.api.@internal.readside
         public IActorRef ShardRegion { get; }
         public TimeSpan EnsureActiveInterval { get; }
         public ICancelable Repeater { get; }
-        public string Name { get; }
 
-        public EnsureActiveActor(string[] entityIds, IActorRef shardRegion, TimeSpan ensureActiveInterval, string name)
+        public EnsureActiveActor(string[] entityIds, IActorRef shardRegion, TimeSpan ensureActiveInterval)
         {
             EntityIds = entityIds;
             ShardRegion = shardRegion;
             EnsureActiveInterval = ensureActiveInterval;
-            Name = name;
 
             Repeater = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(
                 TimeSpan.FromSeconds(0),
