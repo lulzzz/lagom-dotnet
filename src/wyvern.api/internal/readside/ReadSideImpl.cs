@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +24,6 @@ namespace wyvern.api.@internal.readside
         protected Option<string> Name { get; }
 
         public ReadSideImpl(ActorSystem system, ReadSideConfig config, IShardedEntityRegistry registry)
-        // TODO: (implicit ec: ExecutionContext, mat: Materializer)
         {
             Config = config;
             Registry = registry;
@@ -32,18 +32,13 @@ namespace wyvern.api.@internal.readside
 
         public override void Register<TE>(Func<ReadSideProcessor<TE>> processorFactory)
         {
-            // TODO: Resolve vs straight inject
             if (!Config.Role.ForAll(Cluster.Get(System).SelfRoles.Contains))
-            {
-                System.Log.Warning("Not running this thing.");
                 return;
-            }
-            System.Log.Info("Running this thing.");
+
             ReadSideProcessor<TE> dummyProcessor;
             try
             {
                 dummyProcessor = processorFactory();
-                System.Log.Info("Created dummy processor");
             }
             catch (Exception)
             {
@@ -53,7 +48,7 @@ namespace wyvern.api.@internal.readside
             }
 
             var readSideName = (Name.HasValue ? (Name.Value + "-") : "") + dummyProcessor.ReadSideName;
-            var encodedReadSideName = readSideName; // URLEncoder.encode(readSideName, "utf-8")
+            var encodedReadSideName = WebUtility.UrlEncode(readSideName);
             var tags = dummyProcessor.AggregateTags;
             var entityIds = tags.Select(x => x.Tag);
 

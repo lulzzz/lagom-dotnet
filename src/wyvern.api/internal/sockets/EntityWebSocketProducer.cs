@@ -40,9 +40,11 @@ public class EntityWebSocketProducer<TE>
 
         try
         {
+            var tag = AggregateEventTag.Of<TE>();
             await StreamSource.Invoke(
-                    AggregateEventTag.Of<TE>(),
-                    $"{entityId}", // TODO: reflect to get entity type
+                    tag,
+                    // TODO: check this..
+                    $"{tag.Tag}|{entityId}",
                     Offset.Sequence(startOffset),
                     Offset.Sequence(endOffset)
                 )

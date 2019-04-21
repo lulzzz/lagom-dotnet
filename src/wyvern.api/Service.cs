@@ -6,8 +6,6 @@ using wyvern.utils;
 
 namespace wyvern.api
 {
-    // TODO: Interface and inject.
-
     /// <summary>
     /// Main entry point for converting requests to calls against various
     /// system endpoints

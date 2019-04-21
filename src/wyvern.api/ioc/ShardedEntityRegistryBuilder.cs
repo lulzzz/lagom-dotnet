@@ -79,8 +79,6 @@ namespace wyvern.api.ioc
                 registry
             );
 
-            // TODO: Execution context, materializer for streams
-
             foreach (var readsideDelegate in ReadSideDelegates)
                 readsideDelegate.Invoke(readside);
 

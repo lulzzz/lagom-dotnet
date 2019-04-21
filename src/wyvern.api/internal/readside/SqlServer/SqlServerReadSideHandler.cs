@@ -89,7 +89,7 @@ namespace wyvern.api.@internal.readside.SqlServer
             }
             catch (Exception ex)
             {
-                // TODO:
+                throw;
             }
         }
 

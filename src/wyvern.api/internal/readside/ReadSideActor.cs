@@ -67,7 +67,6 @@ namespace wyvern.api.@internal.readside
             {
                 var tagName = x.EntityId;
                 var timeout = config.GlobalPrepareTimeout;
-                // TODO: this was map, check for threading issues
                 globalPrepareTask
                     .AskExecute(timeout)
                     .ContinueWith((y) => new ReadSideActor.Start(tagName))
@@ -87,7 +86,6 @@ namespace wyvern.api.@internal.readside
                 var backoffSource = RestartSource.WithBackoff(
                     () =>
                     {
-                        // TODO: SQL Server connection string
                         ReadSideHandler<TE> handler = Processor().BuildHandler();
                         var offsetTask = handler.Prepare(tag);
                         return Source.FromTask(offsetTask)
@@ -109,7 +107,6 @@ namespace wyvern.api.@internal.readside
 
                 (var killSwitch, var streamDone) = backoffSource.ViaMaterialized(KillSwitches.Single<Done>(), Keep.Right)
                     .ToMaterialized(Sink.Ignore<Done>(), Keep.Both)
-                    // TODO: Materializer static???
                     .Run(Context.Materializer());
 
                 Shutdown = new Option<IKillSwitch>(killSwitch);

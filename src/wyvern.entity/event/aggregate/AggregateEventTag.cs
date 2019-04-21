@@ -46,7 +46,7 @@ namespace wyvern.entity.@event.aggregate
         /// <summary>
         /// Instantiate a tag of the given type
         /// </summary>
-        /// <typeparam name="E"></typeparam>
+        /// <typeparam name="E">Entity type</typeparam>
         /// <returns></returns>
         public static AggregateEventTag Of<E>(string name = null)
         {

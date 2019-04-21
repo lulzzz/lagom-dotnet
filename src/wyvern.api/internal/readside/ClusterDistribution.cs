@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Cluster.Sharding;
@@ -80,8 +81,7 @@ namespace wyvern.api.@internal.readside
                             shardRegion,
                             settings.EnsureActiveInterval
                         ),
-                            // TODO: Url encode
-                            "cluster-distribution-" + typeName
+                        "cluster-distribution-" + WebUtility.UrlEncode(typeName)
                     );
 
                     return shardRegion;

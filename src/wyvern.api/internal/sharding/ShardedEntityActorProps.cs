@@ -6,9 +6,6 @@ using wyvern.entity.command;
 using wyvern.entity.@event;
 using wyvern.entity.state;
 
-// TODO: https://github.com/lagom/lagom/blob/93cbacd98b1950b8f96e0ff3b7d0ea10451f9441/service/scaladsl/kafka/server/src/main/scala/com/lightbend/lagom/internal/scaladsl/broker/kafka/ScaladslRegisterTopicProducers.scala
-// TODO: https://github.com/lagom/lagom/blob/master/service/scaladsl/kafka/server/src/main/scala/com/lightbend/lagom/scaladsl/broker/kafka/LagomKafkaComponents.scala
-
 namespace wyvern.api.@internal.sharding
 {
     internal static class ShardedEntityActorProps

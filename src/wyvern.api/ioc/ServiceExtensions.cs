@@ -84,7 +84,6 @@ namespace wyvern.api.ioc
                         c.DocumentFilter<ReactiveServicesApiDescriptionsDocumentFilter>();
                         c.SwaggerDoc("v1", new Info()
                         {
-                            // TODO: make this name configurable...
                             Title = "My Reactive Services",
                             Version = "v1"
                         });
@@ -211,9 +210,6 @@ namespace wyvern.api.ioc
             if (!(topicCall.TopicHolder is MethodTopicHolder))
                 throw new NotImplementedException();
 
-            // TODO: Offset registry
-            // TODO: SenderLink
-
             var producer = ((MethodTopicHolder)topicCall.TopicHolder).Method.Invoke(s, null);
             typeof(ITaggedOffsetTopicProducer<>)
             .MakeGenericType(producer.GetType().GetGenericArguments()[0])
@@ -267,8 +263,6 @@ namespace wyvern.api.ioc
                         })
                         .ToArray();
 
-                    // TODO: Casting...
-
                     var mres = mref.Invoke(service, mrefParamArray);
                     var cref = mres.GetType().GetMethod("Invoke", new[] { requestType });
 
@@ -299,7 +293,6 @@ namespace wyvern.api.ioc
                     catch (Exception ex)
                     {
                         if (ex is StatusCodeException) throw;
-                        // TODO: Logger extensions
                         res.StatusCode = 500;
                         var result = task.Result as Exception;
                         var jsonString = JsonConvert.SerializeObject(result.Message);
@@ -338,7 +331,8 @@ namespace wyvern.api.ioc
 
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path != path) // TODO: this isn't matching with embedded path variables.
+                // TODO: this isn't matching with embedded path variables.
+                if (context.Request.Path != path)
                 {
                     await next();
                 }
