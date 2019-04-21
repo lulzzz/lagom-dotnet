@@ -95,8 +95,6 @@ internal static partial class Producer
             .Create(system)
             .WithRole(producerConfig.Role);
 
-        // TODO: how to make this a singleton so we don't have to join self
-
         new ClusterDistribution(system)
             .Start(
                 $"serviceBusProducer-{topicId}",

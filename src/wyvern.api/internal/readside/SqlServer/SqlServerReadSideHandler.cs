@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Configuration;
 using Akka.Persistence.Query;
 using Akka.Streams.Dsl;
 using Dapper;
@@ -24,6 +25,7 @@ namespace wyvern.api.@internal.readside.SqlServer
 
         public SqlServerReadSideHandler(
             IConfiguration config,
+            Config config2,
             string readSideId,
             Action<SqlConnection> globalPrepareCallback,
             Action<SqlConnection, AggregateEventTag> prepareCallback,
@@ -36,6 +38,8 @@ namespace wyvern.api.@internal.readside.SqlServer
             EventHandlers = eventHandlers;
 
             var constr = config.GetConnectionString(ReadSideId);
+            if (String.IsNullOrEmpty(constr))
+                constr = config2.GetString("db.default.connection-string");
             ReadSideConnectionFactory = ReadSideConnectionFactoryInitializer(constr);
         }
 

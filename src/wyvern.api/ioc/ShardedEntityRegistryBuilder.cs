@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using wyvern.api.abstractions;
 using wyvern.api.@internal.readside;
 using static wyvern.api.@internal.readside.ClusterDistributionExtensionProvider;
+using Akka.Configuration;
 
 namespace wyvern.api.ioc
 {
@@ -17,6 +18,7 @@ namespace wyvern.api.ioc
     {
         private ActorSystem ActorSystem { get; }
         private IConfiguration Config { get; }
+        private Config Config2 { get; }
 
         private List<Action<IShardedEntityRegistry>> RegistryDelegates { get; } = new List<Action<IShardedEntityRegistry>>();
         private List<Action<ReadSide>> ReadSideDelegates { get; } = new List<Action<ReadSide>>();
@@ -46,7 +48,7 @@ namespace wyvern.api.ioc
             where TP : ReadSideProcessor<TE>, new()
         {
             ReadSideDelegates.Add(
-                x => x.Register(() => new TP { Config = Config })
+                x => x.Register(() => new TP { Config = Config, Config2 = Config2 })
             );
             return this;
         }
