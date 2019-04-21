@@ -24,10 +24,11 @@ namespace wyvern.api.ioc
         private List<Action<ReadSide>> ReadSideDelegates { get; } = new List<Action<ReadSide>>();
         private List<Action<ActorSystem>> ExtensionDelegates { get; } = new List<Action<ActorSystem>>();
 
-        public ShardedEntityRegistryBuilder(ActorSystem actorSystem, IConfiguration config)
+        public ShardedEntityRegistryBuilder(ActorSystem actorSystem, IConfiguration config, Config config2)
         {
             ActorSystem = actorSystem;
             Config = config;
+            Config2 = config2;
             ExtensionDelegates.Add(x => x.WithExtension<ClusterDistribution, ClusterDistributionExtensionProvider>());
         }
 
