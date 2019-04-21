@@ -1,22 +1,25 @@
-FROM microsoft/dotnet:sdk AS build-env
+FROM mcr.microsoft.com/dotnet/core/sdk:2.1-alpine AS build-env
 WORKDIR /app
 
-COPY ./examples/api.tutorial/*.csproj ./examples/api.tutorial/
+COPY ./example/*.csproj ./example/
 COPY ./src/wyvern.api/*.csproj ./src/wyvern.api/
 COPY ./src/wyvern.entity/*.csproj ./src/wyvern.entity/
 COPY ./src/wyvern.utils/*.csproj ./src/wyvern.utils/
+COPY ./src/wyvern.visualize/*.csproj ./src/wyvern.visualize/
 
-RUN cd ./examples/api.tutorial/ && \
+RUN cd ./example/ && \
     dotnet restore
 
-COPY ./examples ./examples/
+COPY ./example ./example/
 COPY ./src ./src/
 
-RUN cd ./examples/api.tutorial/ && \
-    dotnet publish -c Release -o out
+RUN cd ./example && \
+    dotnet publish -o out
+
+COPY ./docker/node/akka.overrides.conf ./example/out/
 
 # Build runtime image
-FROM microsoft/dotnet:aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/runtime:2.1-alpine
 WORKDIR /app
-COPY --from=build-env /app/examples/api.tutorial/out .
-ENTRYPOINT ["dotnet", "api.tutorial.dll"]
+COPY --from=build-env /app/example/out .
+ENTRYPOINT ["dotnet", "wyvern.api.hello.dll"]

@@ -6,6 +6,8 @@ using wyvern.api;
 using wyvern.api.ioc;
 using wyvern.utils;
 using static wyvern.api.ioc.ServiceExtensions;
+using Akka.Event;
+using System;
 
 public class Startup
 {
@@ -24,8 +26,8 @@ public class Startup
             {
                 // Note: these don't really need to be called, they are the default
                 //       I've only added them here as an example
-                //x.WithTopicSerializer<DefaultSerializer>();
-                //x.WithMessagePropertyExtractor<DefaultExtractor>();
+                x.WithTopicSerializer<DefaultSerializer>();
+                x.WithMessagePropertyExtractor<DefaultExtractor>();
 
                 /* Register all the services here */
                 x.AddReactiveService<HelloService, HelloServiceImpl>();
@@ -43,7 +45,8 @@ public class Startup
              */
             ReactiveServicesOption.WithApi |
             ReactiveServicesOption.WithSwagger |
-            ReactiveServicesOption.WithTopics
+            ReactiveServicesOption.WithTopics |
+            ReactiveServicesOption.WithVisualizer
         );
 
     }

@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.4"
 services:
   db:
     build:
@@ -10,7 +10,10 @@ services:
     ports:
       - "1433:1433"
     healthcheck:
-      test: sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd'   -Q 'select 1'
+      test: sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q 'select 1'
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   amqp:
     build:
@@ -30,9 +33,20 @@ services:
       - "7000:7000"
     environment:
       ASPNETCORE_URLS: "http://*:5000"
-      AKKA_TYPE: "seed"
-    healthcheck:
-      test: curl --fail http://seed:5000 || exit 1
     depends_on:
       - db
       - amqp
+
+  node:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    ports:
+      - "5001:5000"
+      - "7001:7001"
+    environment:
+      ASPNETCORE_URLS: "http://*:5000"
+    depends_on:
+      - db
+      - amqp
+      - seed
