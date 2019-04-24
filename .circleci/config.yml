@@ -11,7 +11,8 @@ jobs:
           name: test results
           command: |
             dotnet tool install -g trx2junit
-            trx2junit tests/**/TestResults/*.trx
+            export PATH="$PATH:/root/.dotnet/tools"
+            trx2junit src/*.tests/TestResults/*.trx
       - store_test_results:
           path: tests/TestResults
       - store_artifacts:
