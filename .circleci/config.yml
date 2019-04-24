@@ -10,7 +10,6 @@ jobs:
       - run:
           name: test results
           command: |
-            export PATH="$PATH:/root/.dotnet/tools"
             dotnet tool install -g trx2junit
             export PATH="$PATH:/root/.dotnet/tools"
             trx2junit tests/**/TestResults/*.trx
@@ -26,10 +25,10 @@ jobs:
             dotnet pack --no-build src/wyvern.utils/wyvern.utils.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM --include-symbols -p:SymbolPackageFormat=snupkg --include-source
             dotnet pack --no-build src/wyvern.entity/wyvern.entity.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM --include-symbols -p:SymbolPackageFormat=snupkg --include-source
             dotnet pack --no-build src/wyvern.api/wyvern.api.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM --include-symbols -p:SymbolPackageFormat=snupkg --include-source
-        = run:
-          name: push
-          command: |
-            dotnet nuget push src/wyvern.visualize/bin/Debug/wyvern.visualize.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
-            dotnet nuget push src/wyvern.utils/bin/Debug/wyvern.utils.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
-            dotnet nuget push src/wyvern.entity/bin/Debug/wyvern.entity.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
-            dotnet nuget push src/wyvern.api/bin/Debug/wyvern.api.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
+      - run:
+        name: push
+        command: |
+          dotnet nuget push src/wyvern.visualize/bin/Debug/wyvern.visualize.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
+          dotnet nuget push src/wyvern.utils/bin/Debug/wyvern.utils.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
+          dotnet nuget push src/wyvern.entity/bin/Debug/wyvern.entity.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
+          dotnet nuget push src/wyvern.api/bin/Debug/wyvern.api.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
