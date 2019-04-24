@@ -14,7 +14,6 @@ namespace wyvern.api.tests
         {
             Mode = mode;
             Words = words.ToArray();
-            Console.WriteLine("WORDS: " + String.Join(", ", Words));
         }
 
         public TestState WithMode(TestEntity.Mode mode)
