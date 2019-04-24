@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <None Update="akka.conf">
@@ -16,7 +17,7 @@
     <ProjectReference Include="..\src\wyvern.visualize\wyvern.visualize.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.3.10"/>
+    <PackageReference Include="Akka" Version="1.3.12" />
   </ItemGroup>
   <!--
   <ItemGroup>

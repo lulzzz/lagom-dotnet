@@ -6,7 +6,6 @@ using Xunit;
 
 namespace wyvern.tests
 {
-    [Trait("Category", "tests")]
     public class DescriptorTests
     {
         private (IDescriptor, IDescriptor) Harness()

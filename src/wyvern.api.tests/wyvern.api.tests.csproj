@@ -2,21 +2,19 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <AssemblyName>wyvern.api</AssemblyName>
-    <RootNamespace>wyvern.api</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>$(AssemblyName).tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\wyvern.visualize\wyvern.visualize.csproj" />
     <ProjectReference Include="..\wyvern.entity\wyvern.entity.csproj" />
     <ProjectReference Include="..\wyvern.utils\wyvern.utils.csproj" />
+    <ProjectReference Include="..\wyvern.api\wyvern.api.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.10" />
+    <PackageReference Include="akka.testkit" Version="1.3.12" />
+    <PackageReference Include="akka.testkit.xunit" Version="1.3.12" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.10" AllowExplicitVersion="true" />
     <PackageReference Include="Akka" Version="1.3.12" />
     <PackageReference Include="Akka.Streams" Version="1.3.12" />
     <PackageReference Include="Akka.Persistence.Query" Version="1.3.12" />
@@ -24,5 +22,16 @@
     <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
+
+  <Target Name="RemoveSnapshotsBeforeBuild" BeforeTargets="BeforeBuild">
+    <RemoveDir Directories="$(OutDir)\Snapshots" />
+  </Target>
+
 </Project>

@@ -8,7 +8,6 @@ using Xunit;
 namespace wyvern.api.tests
 {
 
-    [Trait("Category", "tests")]
     public class ImmutableTests
     {
         [Fact]
