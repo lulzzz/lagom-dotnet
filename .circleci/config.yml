@@ -12,11 +12,12 @@ jobs:
           command: |
             dotnet tool install -g trx2junit
             export PATH="$PATH:/root/.dotnet/tools"
-            trx2junit src/*.tests/TestResults/*.trx
+            trx2junit src/wyvern.api.tests/TestResults/*.trx --output TestResults/wyvern.api.tests/
+            trx2junit src/wyvern.utils.tests/TestResults/*.trx --output TestResults/wyvern.utils.tests/
       - store_test_results:
-          path: tests/TestResults
+          path: TestResults
       - store_artifacts:
-          path: tests/TestResults
+          path: TestResults
           destination: TestResults
       - run:
           name: pack
@@ -26,7 +27,7 @@ jobs:
             dotnet pack --no-build src/wyvern.entity/wyvern.entity.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM --include-symbols -p:SymbolPackageFormat=snupkg --include-source
             dotnet pack --no-build src/wyvern.api/wyvern.api.csproj /p:Version=1.0.$CIRCLE_BUILD_NUM --include-symbols -p:SymbolPackageFormat=snupkg --include-source
       - run:
-          name: push
+            name: push
           command: |
             dotnet nuget push src/wyvern.visualize/bin/Debug/wyvern.visualize.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
             dotnet nuget push src/wyvern.utils/bin/Debug/wyvern.utils.1.0.$CIRCLE_BUILD_NUM.nupkg --api-key $nuget_api_key --source https://api.nuget.org/v3/index.json
