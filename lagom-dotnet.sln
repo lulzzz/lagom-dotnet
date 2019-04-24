@@ -21,6 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.api.tests", "src\wyv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "wyvern.visualize", "src\wyvern.visualize\wyvern.visualize.csproj", "{D94C8852-7517-46AE-A374-6C4D591E5BA0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".circle-ci", ".circle-ci", "{7153F517-A4A5-46E3-A144-DBE7FC5E3158}"
+	ProjectSection(SolutionItems) = preProject
+		.circleci\config.yml = .circleci\config.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
