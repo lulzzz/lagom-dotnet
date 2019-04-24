@@ -272,7 +272,7 @@ namespace wyvern.api.@internal.sharding
             const string snapshotPluginId = "";
             const string journalPluginId = "";
 
-            JoinCluster(ActorSystem, "dev");
+            JoinCluster(ActorSystem);
 
             if (Role.ForAll(Cluster.Get(ActorSystem).SelfRoles.Contains))
             {
@@ -326,18 +326,22 @@ namespace wyvern.api.@internal.sharding
         /// </summary>
         /// <param name="actorSystem"></param>
         /// <param name="environment"></param>
-        private void JoinCluster(ActorSystem actorSystem, string environment)
+        private void JoinCluster(ActorSystem actorSystem)
         {
             var config = actorSystem.Settings.Config.GetConfig("wyvern.cluster");
 
             var joinSelf = config.GetBoolean("join-self");
             var exitWhenDowned = config.GetBoolean("exit-when-downed");
-            var isProd = string.Equals("prod", environment);
+            var isProduction = "Production".Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                StringComparison.InvariantCultureIgnoreCase
+            );
 
-            if (isProd && joinSelf)
+            if (isProduction && joinSelf)
                 actorSystem.Log.Warning("join-self should not be enabled in prod");
 
             var cluster = Cluster.Get(actorSystem);
+
             if (cluster.Settings.SeedNodes.IsEmpty && joinSelf)
                 cluster.Join(cluster.SelfAddress);
 
