@@ -74,7 +74,7 @@ namespace wyvern.api.ioc
         /// Event to call when recovery is completed
         /// </summary>
         /// <returns></returns>
-        public Behavior RecoveryCompleted()
+        public virtual Behavior RecoveryCompleted()
         {
             return BehaviorProperty;
         }

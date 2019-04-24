@@ -21,6 +21,14 @@ using wyvern.utils;
 
 namespace wyvern.api.@internal.sharding
 {
+    internal static class ShardedEntityActor
+    {
+        public class Stop
+        {
+            public static Stop Instance { get; } = new Stop();
+        }
+    }
+
     /// <summary>
     /// Entity actor for sharded operations
     /// </summary>
@@ -29,7 +37,7 @@ namespace wyvern.api.@internal.sharding
     /// <typeparam name="TE"></typeparam>
     /// <typeparam name="TS"></typeparam>
     internal sealed class ShardedEntityActor<T, TC, TE, TS> : PersistentActor
-        where T : ShardedEntity<TC, TE, TS>, new()
+        where T : ShardedEntity<TC, TE, TS>
         where TC : AbstractCommand
         where TE : AbstractEvent
         where TS : AbstractState
@@ -58,6 +66,7 @@ namespace wyvern.api.@internal.sharding
         public ShardedEntityActor(
             string idPrefix,
             Option<string> entityId,
+            T entity,
             int snapshotAfter,
             TimeSpan passivateAfterIdleTimeout,
             string snapshotPluginId,
@@ -72,10 +81,9 @@ namespace wyvern.api.@internal.sharding
             if (EntityId.IndexOf(Separator) > -1)
                 throw new InvalidOperationException("Illegal use of separator character in entity name");
 
-            Entity = new T
-            {
-                EntityId = EntityId
-            };
+            Entity = entity;
+            Entity.EntityId = EntityId;
+
             SnapshotAfter = snapshotAfter;
             PassivateAfterIdleTimeout = passivateAfterIdleTimeout;
             SnapshotPluginId = snapshotPluginId;
@@ -287,12 +295,12 @@ namespace wyvern.api.@internal.sharding
             // Actor due for passivation
             else if (message is ReceiveTimeout)
             {
-                ShardRegion.Context.Parent.Tell(
-                    new Passivate(new Stop())
+                Context.Parent.Tell(
+                    new Passivate(ShardedEntityActor.Stop.Instance)
                 );
             }
             // Cluster prescribing passivation
-            else if (message is Stop || message is PoisonPill)
+            else if (message is ShardedEntityActor.Stop || message is PoisonPill)
             {
                 Context.Stop(Self);
             }

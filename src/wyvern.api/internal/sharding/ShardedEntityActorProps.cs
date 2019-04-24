@@ -33,7 +33,7 @@ namespace wyvern.api.@internal.sharding
             TimeSpan passivateAfterIdleTimeout,
             string snapshotPluginId,
             string journalPluginId)
-            where T : ShardedEntity<TC, TE, TS>, new()
+            where T : ShardedEntity<TC, TE, TS>
             where TC : AbstractCommand
             where TE : AbstractEvent
             where TS : AbstractState
@@ -42,6 +42,7 @@ namespace wyvern.api.@internal.sharding
                 new ShardedEntityActor<T, TC, TE, TS>(
                     persistenceIdPrefix,
                     entityId,
+                    entityFactory(),
                     snapshotAfter,
                     passivateAfterIdleTimeout,
                     snapshotPluginId,
